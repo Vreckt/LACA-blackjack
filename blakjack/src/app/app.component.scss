@@ -1,0 +1,27 @@
+.container {
+    background: #263238;
+}
+
+.list-server {
+    width: 30%;
+    height: calc(100vh - 64px);
+    overflow: scroll;
+    overflow-x: hidden;
+}
+
+.item {
+    width: 100%;
+    color: white;
+}
+
+.right-side {
+    width: 100%;
+    // background-color: white;
+}
+
+.home-img {
+    width: 100%;
+    height: 450px;
+    background-size: cover;
+    background-image: url("../assets/images/cards/back_cards-07.jpg");
+}
