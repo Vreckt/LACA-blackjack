@@ -4,10 +4,9 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server, {
     serveClient: false,
-  // below are engine.IO options
-  pingInterval: 10000,
-  pingTimeout: 5000,
-  cookie: false
+    pingInterval: 10000,
+    pingTimeout: 5000,
+    cookie: false
 });
 var port =  8081;
 
@@ -27,8 +26,7 @@ io.sockets.on('connection', (socket) => {
 
     let user = {id: socket.conn.id, name: socket.handshake.query.username};
 
-    if (listUsers.find(u =>  u.id === socket.handshake.query.oldSocket && u.name === u.name)) {
-        console.log('oldUser');
+    if (listUsers.find(u =>  u.id === socket.handshake.query.oldSocket && u.name === socket.handshake.query.username)) {
         socket.conn.id = socket.handshake.query.oldSocket;
         user.id = socket.handshake.query.oldSocket;
         for (const usr of listUsers) {
@@ -37,7 +35,6 @@ io.sockets.on('connection', (socket) => {
             }
         }
     } else {
-        console.log('newUser');
         listUsers.push(user)
     }
 
@@ -49,11 +46,8 @@ io.sockets.on('connection', (socket) => {
 
     socket.on('new lobby', (data) => {
         const roomId = createRoomId(32) + user.id;
-        console.log('new lobby : ', data );
-        console.log('new lobby : ', roomId );
         if (!listServer.has(roomId)) {
-            console.log('new lobby : ', 'in IF' );
-            listServer.set(roomId, {id: roomId, name: data.roomName, users: [], configs: null});
+            listServer.set(roomId, {id: roomId, name: data.roomName, users: [], configs: null, status: 'P'});
             io.to(socket.id).emit('new lobby', {
                 roomId: roomId,
                 roomName: data.roomName
@@ -62,7 +56,6 @@ io.sockets.on('connection', (socket) => {
                 servers: extractServerName()
             });
         } else {
-            console.log('new lobby : ', 'in ELSE' );
             io.to(socket.id).emit('new lobby', {
                 roomid: null,
                 roomName: data.roomName
@@ -71,15 +64,10 @@ io.sockets.on('connection', (socket) => {
     });
 
     socket.on('join table', (data) => {
-        console.log("before IF")
         if (listServer.has(data.roomId)) {
-            console.log("in IF")
             const usr = listUsers.find(u => u.id === user.id);
-            console.log(usr);
             if (!listServer.get(data.roomId).users.find(u => u.id === usr.id)){
-                console.log("in second IF")
                 listServer.get(data.roomId).users.push(usr);
-                console.log('join table user id : ', user.id);
                 socket.to(data.roomId).emit('player join', "JOIN");
             }
             socket.join(data.roomId);
@@ -87,9 +75,7 @@ io.sockets.on('connection', (socket) => {
                 table: listServer.get(data.roomId),
                 status: 'success'
             });
-            console.log("out second IF")
         } else {
-            console.log("in ELSE")
             io.to(socket.id).emit('join table', {
                 table: null,
                 status: 'error'

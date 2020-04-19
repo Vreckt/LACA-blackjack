@@ -30,7 +30,6 @@ export class LobbyComponent implements OnInit {
     if (this.socket) {
       this.aftersocketInit();
     } else {
-      console.log('pass')
       this.socketBlackJackService.connectToSocket();
       this.socket = this.socketBlackJackService.socket;
       this.aftersocketInit();
@@ -39,7 +38,6 @@ export class LobbyComponent implements OnInit {
 
   aftersocketInit() {
     if (this.socket) {
-      console.log('pass2')
       this.setupSocketConnection();
       this.socket.emit('join table', {
         roomId: this.tableId

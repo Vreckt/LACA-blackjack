@@ -43,6 +43,6 @@ export class SocketBlackJackService {
 
   getSocket() {
     localStorage.getItem('socket');
-}
+  }
 
 }
