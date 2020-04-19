@@ -1,4 +1,5 @@
-
+const User = require('./user')
+const Table = require('./table');
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
@@ -24,7 +25,7 @@ let listUsers = [];
 io.sockets.on('connection', (socket) => {
     console.log('User connected !');
 
-    let user = {id: socket.conn.id, name: socket.handshake.query.username};
+    let user = new User(socket.conn.id, socket.handshake.query.username)
 
     if (listUsers.find(u =>  u.id === socket.handshake.query.oldSocket && u.name === socket.handshake.query.username)) {
         socket.conn.id = socket.handshake.query.oldSocket;
@@ -35,9 +36,8 @@ io.sockets.on('connection', (socket) => {
             }
         }
     } else {
-        listUsers.push(user)
+        listUsers.push(user);
     }
-
 
     socket.emit('connected', {
         id: socket.conn.id,
@@ -46,20 +46,14 @@ io.sockets.on('connection', (socket) => {
 
     socket.on('new lobby', (data) => {
         const roomId = createRoomId(32) + user.id;
+        // && listServer.get(roomId).users.length < 7
         if (!listServer.has(roomId)) {
-            listServer.set(roomId, {id: roomId, name: data.roomName, users: [], configs: null, status: 'P'});
-            io.to(socket.id).emit('new lobby', {
-                roomId: roomId,
-                roomName: data.roomName
-            });
-            socket.broadcast.emit('update lobbys', {
-                servers: extractServerName()
-            });
+            listServer.set(roomId, new Table(roomId, data.roomName, null));
+            io.to(socket.id).emit('new lobby', { roomId: roomId, roomName: data.roomName});
+            socket.broadcast.emit('update lobbys', { servers: extractServerName() });
         } else {
-            io.to(socket.id).emit('new lobby', {
-                roomid: null,
-                roomName: data.roomName
-            });
+            // Error
+            io.to(socket.id).emit('new lobby', { roomid: null, roomName: data.roomName });
         }
     });
 
@@ -68,7 +62,10 @@ io.sockets.on('connection', (socket) => {
             const usr = listUsers.find(u => u.id === user.id);
             if (!listServer.get(data.roomId).users.find(u => u.id === usr.id)){
                 listServer.get(data.roomId).users.push(usr);
-                socket.to(data.roomId).emit('player join', "JOIN");
+                socket.to(data.roomId).emit('player join', {
+                    table: listServer.get(data.roomId),
+                    status: 'success'
+                });
             }
             socket.join(data.roomId);
             io.to(socket.id).emit('join table', {
@@ -76,10 +73,8 @@ io.sockets.on('connection', (socket) => {
                 status: 'success'
             });
         } else {
-            io.to(socket.id).emit('join table', {
-                table: null,
-                status: 'error'
-            });
+            // Error
+            io.to(socket.id).emit('join table', { table: null, status: 'error'});
         }
     });
 

@@ -4,7 +4,33 @@
           <span>Black Jack - Table : {{ table.name }}</span>
         </mat-toolbar-row>
     </mat-toolbar>
-    <p>lobby works!</p>
-    <button (click)="trigger()">trigger</button>
+    <br>
+    <div fxLayout="row" fxLayoutAlign="space-around">
+      <div fxLayout="column" fxFlex="25" >
+        <div *ngFor="let user of table.users" class="other-player" fxLayout="column" fxLayoutAlign="stretch">
+          <div class="other-header">
+            {{ user.name }}
+          </div>
+          <div class="other-card-area">
+
+          </div>
+        </div>
+      </div>
+      <div fxLayout="column" fxFlex="66">
+        <div class="bank-area"></div>
+        <div class="player-area" fxlayout="column">
+          <div class="player-card-area">
+
+          </div>
+          <div class="player-action-area">
+            <button>Commencer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+   
+    
     
 </div>
+<!-- <button (click)="trigger()">trigger</button> -->

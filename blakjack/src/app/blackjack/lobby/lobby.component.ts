@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack.service';
+import { Table } from 'src/app/shared/models/table';
 
 @Component({
   selector: 'app-lobby',
@@ -10,8 +11,9 @@ import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack
 export class LobbyComponent implements OnInit {
 
   init = false;
-  tableId;
-  table;
+  tableId = null;
+  table = null;
+  player = null;
   private socket: any = null;
 
 
@@ -51,14 +53,20 @@ export class LobbyComponent implements OnInit {
     this.socket.emit('trigger');
   }
 
-
+  private manageUI(data) {
+    this.table = data.table;
+    const playerIndex = this.table.users.findIndex(user =>
+      user.id === this.socketBlackJackService.getConnectionId() && user.name === localStorage.getItem('username')
+    );
+    this.player = this.table.users.splice(playerIndex, 1);
+  }
 
   private setupSocketConnection() {
 
     this.socket.on('join table', data => {
       console.log(data);
       if (data.status === 'success') {
-        this.table = data.table;
+        this.manageUI(data);
         this.init = true;
       }
     });
@@ -66,8 +74,11 @@ export class LobbyComponent implements OnInit {
       console.log('Trigger');
     });
 
-    this.socket.on('player join', (data) => {
-      console.log('someone join !');
+    this.socket.on('player join', data => {
+      if (data.status === 'success') {
+        console.log('User Join!');
+        this.manageUI(data);
+      }
     });
   }
 

@@ -51,7 +51,7 @@ export class BlackjackComponent implements OnInit {
   }
 
   joinTable(table) {
-    alert('You Join the table ' + table.id);
+    this.router.navigate([table.id], { relativeTo: this.route });
   }
 
 

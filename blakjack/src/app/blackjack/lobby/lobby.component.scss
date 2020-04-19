@@ -1,0 +1,44 @@
+
+.other-player {
+    height: 20vh;
+    background-color: whitesmoke;
+    
+    margin-bottom: 1%;
+}
+
+.player-area {
+    width: 100%;
+    height: calc(60vh - 64px);
+    background-color: red;
+}
+
+.bank-area {
+    width: 100%;
+    height: calc(40vh - 64px);
+    background-color: green;
+}
+
+.other-header {
+    width: 100%;
+    height: 25px;
+    text-align: center;
+    color: white;
+    background-color: blue;
+}
+
+.other-card-area {
+
+}
+
+.player-card-area{
+    background-color: white;
+    height: 90%;
+}
+
+.player-action-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: grey;
+    height: 10%;
+}
