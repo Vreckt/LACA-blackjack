@@ -6,6 +6,11 @@ const routes: Routes = [
   {
     path: 'blackjack',
     loadChildren: () => import('./blackjack/blackjack.module').then(m => m.BlackJackModule)
+  },
+  {
+    path: '',
+    redirectTo: 'blackjack',
+    pathMatch: 'full'
   }
 ];
 
