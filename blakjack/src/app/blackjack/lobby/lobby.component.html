@@ -1,1 +1,10 @@
-<p>lobby works!</p>
+<div *ngIf="init">
+    <mat-toolbar color="primary" >
+        <mat-toolbar-row>
+          <span>Black Jack - Table : {{ table.name }}</span>
+        </mat-toolbar-row>
+    </mat-toolbar>
+    <p>lobby works!</p>
+    <button (click)="trigger()">trigger</button>
+    
+</div>

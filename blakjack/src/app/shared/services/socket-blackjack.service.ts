@@ -12,7 +12,8 @@ export class SocketBlackJackService {
 
   constructor() { }
 
-  connectToSocket(user: string) {
+  connectToSocket() {
+    const user = localStorage.getItem('username');
     this.socket = io(environment.SOCKET_ENDPOINT, {
       query: {
         username: user,
@@ -35,5 +36,13 @@ export class SocketBlackJackService {
   getConnectionId() {
     return localStorage.getItem('connId');
   }
+
+  keepSocket(connId) {
+      localStorage.setItem('socket', connId);
+  }
+
+  getSocket() {
+    localStorage.getItem('socket');
+}
 
 }
