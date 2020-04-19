@@ -10,30 +10,44 @@ import { Table } from './shared/models/table';
 export class AppComponent implements OnInit, AfterContentInit {
   title = 'blakjack';
 
-  createTable= false;
+  createTable = false;
+
+  username: string;
 
   listTables = [];
 
   constructor(private socketService: SocketService) {}
 
   ngOnInit() {
+    this.username = localStorage.getItem('username');
+    console.log(this.username);
+    if (this.username) { this.initConnectionServer(); }
+  }
+
+  ngAfterContentInit() { }
+
+  private initConnectionServer() {
     this.socketService.setupSocketConnection();
+    this.triggerServer();
   }
 
-  triggerServer() {
-    this.socketService.triggerServer();
-    console.log(this.socketService.listServers);
-    this.listTables = this.socketService.listServers;
-  }
-
-  ngAfterContentInit() {
+  private triggerServer() {
     setTimeout(() => {
-      this.triggerServer();
+      this.socketService.triggerServer();
+      console.log(this.socketService.listServers);
+      this.listTables = this.socketService.listServers;
     }, 200);
   }
 
   createNewTable() {
     this.createTable = !this.createTable;
+  }
+
+  createUsername(username: string) {
+    console.log(username);
+    this.initConnectionServer();
+    localStorage.setItem('username', username);
+    this.username = username;
   }
 
   joinTable(table) {

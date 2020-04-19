@@ -4,7 +4,7 @@
       <span>Black Jack</span>
     </mat-toolbar-row>
 </mat-toolbar>
-<div class="container" fxLayout="row">
+<div class="container" fxLayout="row" *ngIf="username">
     <div class="list-server" *ngIf="listTables">
         <mat-list role="list">
             <mat-list-item role="listitem" *ngFor="let table of listTables; let i of index">
@@ -20,7 +20,7 @@
     </div>
     <div class="right-side" fxLayout="column" fxLayoutGap="20px">
         <div class="home-img"></div>
-        
+
         <div class="action_area" fxLayout="column" fxLayoutAlign="center center">
             <div fxLayoutGap="25px">
                 <button mat-flat-button color="primary" (click)="createNewTable()">Créer une table</button>
@@ -31,6 +31,18 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="onboarding" fxLayout="column" fxLayoutAlign="center center" *ngIf="!username">
+  <div class="onboarding-username-div" fxLayout="column" fxLayoutAlign="center center">
+    <form class="example-form">
+      <mat-form-field class="example-full-width">
+        <mat-label>Pseudo</mat-label>
+        <input #username matInput placeholder="Ex. John Doe" autocomplete='off'(keyUp.enter)="createUsername($event.target.value)">
+      </mat-form-field>
+    </form>
+    <button mat-raised-button color="primary" (click)="createUsername(username.value)">Valider mon pseudo</button>
+  </div>
 </div>
 
 <!-- <router-outlet></router-outlet> -->

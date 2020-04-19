@@ -25,3 +25,16 @@
     // background-size: cover;
     background-image: url("../assets/images/background.jpg");
 }
+
+.onboarding {
+  background: #263238;
+  height: calc(100vh - 64px);
+  overflow-x: hidden;
+}
+
+.onboarding-username-div {
+  width:40%;
+  height:20%;
+  background: white;
+  border-radius:10px;
+}
