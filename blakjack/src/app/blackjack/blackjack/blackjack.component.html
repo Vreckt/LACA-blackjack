@@ -1,0 +1,58 @@
+
+<mat-toolbar color="primary">
+    <mat-toolbar-row>
+      <span>Black Jack</span>
+    </mat-toolbar-row>
+</mat-toolbar>
+<div class="container" fxLayout="row" *ngIf="username">
+    <div class="list-server" *ngIf="listTables">
+        <mat-list role="list">
+            <mat-list-item role="listitem" *ngFor="let table of listTables; let i of index">
+                <div class="item" fxLayout="row" fxLayoutAlign="space-between center">
+                    <div>{{ table.name }}</div>
+                    <button mat-icon-button aria-label="join server" (click)="joinTable(table)">
+                        <mat-icon>add</mat-icon>
+                    </button>
+                </div>
+                <mat-divider [inset]="true" color="primary" class="divider"></mat-divider>
+            </mat-list-item>
+        </mat-list>
+    </div>
+    <div class="right-side" fxLayout="column" fxLayoutGap="20px">
+        <div class="home-img"></div>
+
+        <div class="action_area" fxLayout="column" fxLayoutAlign="center center">
+            <div fxLayoutGap="25px">
+                <button mat-flat-button color="primary" (click)="createTable = !createTable">Nouvelle partie</button>
+                <button mat-flat-button color="primary">Règles</button>
+            </div>
+            <div *ngIf="createTable">
+                <div fxLayout="column" fxLayoutAlign="center center" class="create-room">
+                    <form [formGroup]="formNewTable" (ngSubmit)="onCreateRoom()">
+                        <mat-form-field>
+                            <mat-label>Room</mat-label>
+                            <input matInput
+                            placeholder="Room name"
+                            formControlName="roomName"
+                            color="primary"
+                            (keyUp.enter)="createUsername($event.target.value)">
+                        </mat-form-field>
+                        <button mat-raised-button color="primary">Créer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="onboarding" fxLayout="column" fxLayoutAlign="center center" *ngIf="!username">
+  <div class="onboarding-username-div" fxLayout="column" fxLayoutAlign="center center">
+    <form class="example-form">
+      <mat-form-field class="example-full-width">
+        <mat-label>Pseudo</mat-label>
+        <input #username matInput placeholder="Ex. John Doe" autocomplete='off'(keyUp.enter)="createUsername($event.target.value)">
+      </mat-form-field>
+    </form>
+    <button mat-raised-button color="primary" (click)="createUsername(username.value)">Valider mon pseudo</button>
+  </div>
+</div>

@@ -25,7 +25,7 @@ let listUsers = [];
 io.sockets.on('connection', (socket) => {
     console.log('User connected !');
 
-    let user = {id: socket.conn.id, name: 'User-'+socket.conn.id};
+    let user = {id: socket.conn.id, name: socket.handshake.query.username};
 
     if (listUsers.find(u =>  u.id === socket.handshake.query.oldSocket && u.name === u.name)) {
         socket.id = socket.handshake.query.oldSocket;
@@ -34,22 +34,49 @@ io.sockets.on('connection', (socket) => {
         listUsers.push(user)
     }
     console.log(listUsers);
-    socket.emit('connected', {id: socket.conn.id, servers: listUsers});
-
-    socket.on('trigger', () => {
-        console.log('trigger');
-        console.log(socket.id);
-        io.emit('update du jeu', 'Le jeu est actualisé !');
-        // io.to(socket.id).emit('trigger', 'Bonjour à toi!'); // envoie à une seule personne
-        // io.emit('trigger', 'Bonjour à toi!'); // envoie à tout le monde sender compris
-        // socket.broadcast.emit('trigger', 'Bonjour à toi!'); // envoie à tout le monde sender exclus
+    socket.emit('connected', {
+        id: socket.conn.id,
+        servers: extractServerName()
     });
+
+    socket.on('new lobby', (data) => {
+        const roomId = createRoomId(32) + socket.id;
+        if (!listServer.has(roomId)) {
+            const user = listUsers.find(u => u.id === socket.id);
+            listServer.set(roomId, {id: roomId, name: data.roomName, users: [user], configs: null});
+            io.to(socket.id).emit('new lobby', {
+                roomId: roomId,
+                roomName: data.roomName
+            });
+            socket.broadcast.emit('update lobbys', {
+                servers: extractServerName()
+            });
+        } else {
+            io.to(socket.id).emit('new lobby', {
+                roomid: null,
+                roomName: data.roomName
+            });
+        }
+    });
+
+
+
 
     socket.on('disconnect', () => {
         console.log('user disconnected');
     });
 });
 
+const extractServerName = () => {
+    var tmp = [];
+    let keys = Array.from( listServer.keys() );
+    for (const entry of listServer.entries()) {
+        console.log(entry);
+        console.log(entry['name'])
+        tmp.push(entry.name);
+    }
+    return Array.from( listServer.values());
+}
 
 const createRoomId = (length = 64) => {
     var result = '';
