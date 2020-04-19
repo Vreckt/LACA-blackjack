@@ -23,7 +23,7 @@
         <div class="action_area" fxLayout="column" fxLayoutAlign="center center">
             <div fxLayoutGap="25px">
                 <button mat-flat-button color="primary" (click)="createTable = !createTable">Nouvelle partie</button>
-                <button mat-flat-button color="primary">Règles</button>
+                <app-rules></app-rules>
             </div>
             <div *ngIf="createTable">
                 <div fxLayout="column" fxLayoutAlign="center center" class="create-room">

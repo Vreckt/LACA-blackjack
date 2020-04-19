@@ -14,8 +14,9 @@ import {MatDividerModule} from '@angular/material/divider';
 import {MatInputModule} from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { LobbyComponent } from './lobby/lobby.component';
-import { RulesComponent } from './rules/rules.component';
+import { RulesComponent, DialogRulesComponent } from './rules/rules.component';
 import { CommonModule } from '@angular/common';
+import {MatDialogModule} from '@angular/material/dialog';
 
 const materials = [
   MatListModule,
@@ -24,14 +25,16 @@ const materials = [
   MatIconModule,
   MatDividerModule,
   MatInputModule,
-  FormsModule
+  FormsModule,
+  MatDialogModule
 ];
 
 @NgModule({
   declarations: [
     BlackjackComponent,
     LobbyComponent,
-    RulesComponent
+    RulesComponent,
+    DialogRulesComponent
   ],
   imports: [
     CommonModule,

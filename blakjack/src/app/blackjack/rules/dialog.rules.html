@@ -1,0 +1,44 @@
+<h2 mat-dialog-title>Règles du Blackjack Américain</h2>
+<mat-dialog-content class="mat-typography">
+  <h3>But</h3>
+  <p>Le but du jeu est de dépasser le croupier sans dépasser 21. Si le joueur dépasse, on dit qu'il brûle et perd sa mise initiale.
+  </p>
+  <h3>Valeur des cartes</h3>
+  <p>
+    De 2 à 9 -> valeur nominale de la carte
+    <br><br>
+    Chaque figure (valet, dame, roi) + le 10 surnommées "bûche" -> <b>10</b> points
+    <br><br>
+    As -> <b>1</b> ou 11 (au choix)
+    <br><br>
+    Un blackjack consiste en un as et une "bûche". Si un joueur atteint 21 en 3 cartes ou plus, on compte le point 21 et non blackjack.
+  </p>
+  <h3>Déroulement d'une partie</h3>
+  <p>
+    -Le croupier distribue une carte face visible à chaque joueur et tire une face visible pour lui.<br><br>
+
+    -Il tire ensuite pour chacun une seconde carte face visible et tire une seconde carte face cachée pour lui et ensuite
+    demande au premier joueur de la table situé à sa gauche l'option qu'il désire. <br><br>
+
+    - Si le joueur veut une carte il doit l'annoncer en disant "Carte !" <br>
+    &nbsp;-> Si le joueur dépasse 21 il perd sa mise et le croupier passe au joueur suivant. <br><br>
+
+    -S'il décide d'arrêter en disant "Je reste" <br>
+    &nbsp;-> Le croupier passe également au joueur suivant <br><br>
+
+    - Une fois tous les joueurs servis: <br>
+      &nbsp; · Il joue selon une règle simple: "La banque tire à 16, reste à 17". Ainsi le croupier tire des cartes jusqu'à arriver à 17 minimum. <br>
+      &nbsp; · S'il fait plus de 21 points, tous les joueurs restants gagnent. <br>
+      &nbsp; · S'il fait son point, seuls gagnent ceux ayant un point supérieur au sien
+  </p>
+  <h3>Conditions de victoire</h3>
+  <p>
+    · Si le croupier a plus que les joueurs (max 21), tous les joueurs perdent leur mise. <br>
+    · Si les joueurs gagnent contre le croupier (soit il a dépassé 21 soit il est en dessous des joueurs en question), les joueurs gagnent l'équivalent de leur mise. <br>
+    · Le blackjack (un as + une bûche 10 points) est supérieur à 21 points (obtenu avec 3 cartes ou +) <br>
+    · Si un joueur fait un "blackjack" contre la banque il gagne 1.5 x sa mise <br>
+  </p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Fermer</button>
+</mat-dialog-actions>

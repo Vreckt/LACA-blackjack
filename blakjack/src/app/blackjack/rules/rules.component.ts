@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-rules',
@@ -7,9 +8,19 @@ import { Component, OnInit } from '@angular/core';
 })
 export class RulesComponent implements OnInit {
 
-  constructor() { }
+  constructor(public dialog: MatDialog) { }
 
-  ngOnInit(): void {
+  openRules() {
+    const dialogRules = this.dialog.open(DialogRulesComponent);
   }
 
+  ngOnInit(): void { }
+
 }
+
+@Component({
+  selector: 'app-dialog-rules',
+  templateUrl: './dialog.rules.html',
+  styleUrls: ['./rules.component.scss']
+})
+export class DialogRulesComponent { }
