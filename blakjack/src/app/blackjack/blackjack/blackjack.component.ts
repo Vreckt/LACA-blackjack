@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack.service';
-import { environment } from 'src/environments/environment';
-import * as io from 'socket.io-client';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-blackjack',
@@ -19,25 +18,25 @@ export class BlackjackComponent implements OnInit {
   private socket: any = null;
 
   listTables = [];
-  constructor(private socketService: SocketBlackJackService) {}
+  constructor(
+    private socketService: SocketBlackJackService,
+    private route: ActivatedRoute,
+    private router: Router
+    ) {}
 
   ngOnInit() {
     this.username = localStorage.getItem('username');
     console.log(this.username);
     if (this.username) { this.initConnectionServer(); }
-    // Creation du formulaire pour une nouvelle room
     this.formNewTable = new FormGroup({
       roomName: new FormControl('', Validators.required)
     });
   }
 
   private initConnectionServer() {
-    this.socketService.setupSocketConnection(this.username);
+    this.socketService.connectToSocket(this.username);
     this.socket = this.socketService.socket;
     this.setupSocketConnection();
-    setTimeout(() => {
-      // this.listTables = this.socketService.listServers;
-    }, 200);
   }
 
   onCreateRoom() {
@@ -47,7 +46,6 @@ export class BlackjackComponent implements OnInit {
   }
 
   createUsername(username: string) {
-    console.log(username);
     localStorage.setItem('username', username);
     this.username = username;
     this.initConnectionServer();
@@ -58,15 +56,7 @@ export class BlackjackComponent implements OnInit {
   }
 
 
-  setupSocketConnection() {
-    console.log(environment.SOCKET_ENDPOINT);
-    // this.socket = io(environment.SOCKET_ENDPOINT, {
-    //   query: {
-    //     username: user,
-    //     token: 'cde',
-    //     oldSocket: this.socketService.getConnectionId()
-    //   }
-    // });
+  private setupSocketConnection() {
     this.socket.on('connected', data => {
       this.socketService.keepConnectionId(data.id);
       this.listTables = data.servers;
@@ -77,7 +67,8 @@ export class BlackjackComponent implements OnInit {
     });
 
     this.socket.on('new lobby', data => {
-      console.log(data);
+      console.log(data.roomId);
+      this.router.navigate([data.roomId], { relativeTo: this.route });
     });
 
     this.socket.on('update lobbys', data => {

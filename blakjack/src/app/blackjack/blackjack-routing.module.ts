@@ -7,10 +7,11 @@ import { LobbyComponent } from './lobby/lobby.component';
 
 const routes: Routes = [
   {path: '', component: BlackjackComponent,
-    children: [
-      {path: ':table', component: LobbyComponent}
-    ]
+    // children: [
+    //   {path: ':id', component: LobbyComponent}
+    // ]
   },
+  {path: ':id', component: LobbyComponent},
   {path: 'rules', component: RulesComponent},
   {path: '**', component: BlackjackComponent}
 ];
