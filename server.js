@@ -27,7 +27,7 @@ io.sockets.on('connection', (socket) => {
 
     let user = new User(socket.conn.id, socket.handshake.query.username)
 
-    if (listUsers.find(u =>  u.id === socket.handshake.query.oldSocket && u.name === socket.handshake.query.username)) {
+    if (listUsers.find(u =>  u.id === socket.handshake.query.oldSocket && u.name === u.name)) {
         socket.conn.id = socket.handshake.query.oldSocket;
         user.id = socket.handshake.query.oldSocket;
         for (const usr of listUsers) {
@@ -35,7 +35,9 @@ io.sockets.on('connection', (socket) => {
                 usr.id = user.id;
             }
         }
+        console.log('OLD USER');
     } else {
+        console.log('NEW USER');
         listUsers.push(user);
     }
 
@@ -78,12 +80,27 @@ io.sockets.on('connection', (socket) => {
         }
     });
 
+    socket.on('leave table', (data) => {
+        socket.leave(data.roomId);
+        const usrIndex = listServer.get(data.roomId).users.findIndex(u => u.id === user.id);
+        listServer.get(data.roomId).users.splice(usrIndex, 1);
+        if (listServer.get(data.roomId).users.length === 0) {
+            listServer.delete(data.roomId);
+            socket.broadcast.emit('update lobbys', { servers: extractServerName() });
+        }
+        socket.to(data.roomId).emit('player leave', {
+            table: listServer.get(data.roomId),
+            status: 'success'
+        });
+    });
+
     socket.on('trigger', () => {
         io.to(socket.id).emit('trigger');
     });
 
     socket.on('disconnect', () => {
         console.log('user disconnected');
+        // socket.leave()
     });
 });
 

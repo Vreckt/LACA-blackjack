@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack.service';
-import { Table } from 'src/app/shared/models/table';
 
 @Component({
   selector: 'app-lobby',
@@ -14,6 +13,8 @@ export class LobbyComponent implements OnInit {
   tableId = null;
   table = null;
   player = null;
+  isAdmin = false;
+  showTable = false;
   private socket: any = null;
 
 
@@ -49,37 +50,50 @@ export class LobbyComponent implements OnInit {
     }
   }
 
-  trigger() {
-    this.socket.emit('trigger');
-  }
-
   private manageUI(data) {
     this.table = data.table;
     const playerIndex = this.table.users.findIndex(user =>
       user.id === this.socketBlackJackService.getConnectionId() && user.name === localStorage.getItem('username')
     );
-    this.player = this.table.users.splice(playerIndex, 1);
+    this.player = this.table.users.splice(playerIndex, 1)[0];
+    console.log(this.player);
+    if (this.table.id.includes(this.socketBlackJackService.getConnectionId())) {
+      this.isAdmin = true;
+    }
+  }
+
+  onStartGame() {
+    alert('TODO START GAME');
+    // this.showTable = true;
+  }
+
+  onRemovePlayer() {
+    alert('TODO REMOVE PLAYER');
+  }
+
+  onLeaveTable() {
+    // alert('TODO LEAVE TABLE');
+    this.socket.emit('leave table', {roomId: this.table.id});
+    this.router.navigate(['../'], { relativeTo: this.route });
   }
 
   private setupSocketConnection() {
-
     this.socket.on('join table', data => {
-      console.log(data);
       if (data.status === 'success') {
         this.manageUI(data);
         this.init = true;
       }
     });
-    this.socket.on('trigger', () => {
-      console.log('Trigger');
-    });
 
     this.socket.on('player join', data => {
       if (data.status === 'success') {
-        console.log('User Join!');
+        this.manageUI(data);
+      }
+    });
+    this.socket.on('player leave', data => {
+      if (data.status === 'success') {
         this.manageUI(data);
       }
     });
   }
-
 }
