@@ -1,5 +1,6 @@
 const User = require('./user')
 const Table = require('./table');
+const socketKeys = require('./socketKeys');
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
@@ -22,7 +23,9 @@ app.get('/', (req, res) => {
 let listServer = new Map();
 let listUsers = [];
 
-io.sockets.on('connection', (socket) => {
+console.log(socketKeys.Connection);
+
+io.sockets.on(socketKeys.Connection, (socket) => {
     console.log('User connected !');
 
     let user = new User(socket.conn.id, socket.handshake.query.username)
@@ -41,64 +44,64 @@ io.sockets.on('connection', (socket) => {
         listUsers.push(user);
     }
 
-    socket.emit('connected', {
+    socket.emit(socketKeys.Connected, {
         id: socket.conn.id,
         servers: extractServerName()
     });
 
-    socket.on('new lobby', (data) => {
+    socket.on(socketKeys.NewLobby, (data) => {
         const roomId = createRoomId(32) + user.id;
         // && listServer.get(roomId).users.length < 7
         if (!listServer.has(roomId)) {
             listServer.set(roomId, new Table(roomId, data.roomName, null));
-            io.to(socket.id).emit('new lobby', { roomId: roomId, roomName: data.roomName});
-            socket.broadcast.emit('update lobbys', { servers: extractServerName() });
+            io.to(socket.id).emit(socketKeys.NewLobby, { roomId: roomId, roomName: data.roomName});
+            socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
         } else {
             // Error
-            io.to(socket.id).emit('new lobby', { roomid: null, roomName: data.roomName });
+            io.to(socket.id).emit(socketKeys.NewLobby, { roomid: null, roomName: data.roomName });
         }
     });
 
-    socket.on('join table', (data) => {
+    socket.on(socketKeys.JoinTable, (data) => {
         if (listServer.has(data.roomId)) {
             const usr = listUsers.find(u => u.id === user.id);
             if (!listServer.get(data.roomId).users.find(u => u.id === usr.id)){
                 listServer.get(data.roomId).users.push(usr);
-                socket.to(data.roomId).emit('player join', {
+                socket.to(data.roomId).emit(socketKeys.PlayerJoin, {
                     table: listServer.get(data.roomId),
                     status: 'success'
                 });
             }
             socket.join(data.roomId);
-            io.to(socket.id).emit('join table', {
+            io.to(socket.id).emit(socketKeys.JoinTable, {
                 table: listServer.get(data.roomId),
                 status: 'success'
             });
         } else {
             // Error
-            io.to(socket.id).emit('join table', { table: null, status: 'error'});
+            io.to(socket.id).emit(socketKeys.JoinTable, { table: null, status: 'error'});
         }
     });
 
-    socket.on('leave table', (data) => {
+    socket.on(socketKeys.LeaveTable, (data) => {
         socket.leave(data.roomId);
         const usrIndex = listServer.get(data.roomId).users.findIndex(u => u.id === user.id);
         listServer.get(data.roomId).users.splice(usrIndex, 1);
         if (listServer.get(data.roomId).users.length === 0) {
             listServer.delete(data.roomId);
-            socket.broadcast.emit('update lobbys', { servers: extractServerName() });
+            socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
         }
-        socket.to(data.roomId).emit('player leave', {
+        socket.to(data.roomId).emit(socketKeys.PlayerLeave, {
             table: listServer.get(data.roomId),
             status: 'success'
         });
     });
 
-    socket.on('trigger', () => {
+    socket.on(socketKeys.Trigger, () => {
         io.to(socket.id).emit('trigger');
     });
 
-    socket.on('disconnect', () => {
+    socket.on(socketKeys.Disconnect, () => {
         console.log('user disconnected');
         // socket.leave()
     });

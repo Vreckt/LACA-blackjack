@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { SocketKey } from '../../shared/models/enums/SocketKey';
 
 @Component({
   selector: 'app-blackjack',
@@ -56,20 +57,20 @@ export class BlackjackComponent implements OnInit {
 
 
   private setupSocketConnection() {
-    this.socket.on('connected', data => {
+    this.socket.on(SocketKey.Connected, data => {
       this.socketService.keepConnectionId(data.id);
       this.socketService.keepSocket(this.socket);
       this.socketService.listServers = data.servers;
       this.listTables = data.servers;
     });
 
-    this.socket.on('new lobby', data => {
+    this.socket.on(SocketKey.NewLobby, data => {
       console.log(data.roomId);
       console.log(data);
       this.router.navigate([data.roomId], { relativeTo: this.route });
     });
 
-    this.socket.on('update lobbys', data => {
+    this.socket.on(SocketKey.UpdateLobby, data => {
       console.log(data);
       this.socketService.listServers = data.servers;
       this.listTables = data.servers;

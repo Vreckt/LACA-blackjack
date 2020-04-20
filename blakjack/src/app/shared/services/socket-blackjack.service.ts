@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
 import { environment } from 'src/environments/environment';
+import { SocketKey } from '../models/enums/SocketKey';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +25,7 @@ export class SocketBlackJackService {
   }
 
   createNewLobby(data: any) {
-    this.socket.emit('new lobby', data);
+    this.socket.emit(SocketKey.NewLobby, data);
   }
 
   keepConnectionId(connId: string) {
