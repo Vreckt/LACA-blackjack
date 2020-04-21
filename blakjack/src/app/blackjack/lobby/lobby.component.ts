@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack.service';
+import { SocketKey } from '../../shared/models/enums/SocketKey';
 
 @Component({
   selector: 'app-lobby',
@@ -16,7 +17,6 @@ export class LobbyComponent implements OnInit {
   isAdmin = false;
   showTable = false;
   private socket: any = null;
-
 
   constructor(
     private route: ActivatedRoute,
@@ -42,7 +42,7 @@ export class LobbyComponent implements OnInit {
   aftersocketInit() {
     if (this.socket) {
       this.setupSocketConnection();
-      this.socket.emit('join table', {
+      this.socket.emit(SocketKey.JoinTable, {
         roomId: this.tableId
       });
     } else {
@@ -73,24 +73,24 @@ export class LobbyComponent implements OnInit {
 
   onLeaveTable() {
     // alert('TODO LEAVE TABLE');
-    this.socket.emit('leave table', {roomId: this.table.id});
+    this.socket.emit(SocketKey.LeaveTable, {roomId: this.table.id});
     this.router.navigate(['../'], { relativeTo: this.route });
   }
 
   private setupSocketConnection() {
-    this.socket.on('join table', data => {
+    this.socket.on(SocketKey.JoinTable, data => {
       if (data.status === 'success') {
         this.manageUI(data);
         this.init = true;
       }
     });
 
-    this.socket.on('player join', data => {
+    this.socket.on(SocketKey.PlayerJoin, data => {
       if (data.status === 'success') {
         this.manageUI(data);
       }
     });
-    this.socket.on('player leave', data => {
+    this.socket.on(SocketKey.PlayerLeave, data => {
       if (data.status === 'success') {
         this.manageUI(data);
       }
