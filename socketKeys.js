@@ -21,3 +21,6 @@ const socketKeys = {
     // Others
     Trigger: 'Trigger',
 }
+
+
+module.exports = socketKeys;
