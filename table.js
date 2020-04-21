@@ -4,9 +4,13 @@ class Table {
     constructor(id, name, configs) {
       this.id = id;
       this.name = name;
-      this.users = []
-      this.configs = configs,
-      this.status = 'P'
+      this.users = [];
+      this.configs = {
+          nbDeck: 1,
+      },
+      this.deck = [];
+      this.bank = [];
+      this.status = 'P';
     }
 
     getUser() {

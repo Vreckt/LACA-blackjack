@@ -27,7 +27,6 @@ console.log(socketKeys.Connection);
 
 io.sockets.on(socketKeys.Connection, (socket) => {
     console.log('User connected !');
-
     let user = new User(socket.conn.id, socket.handshake.query.username)
 
     if (listUsers.find(u =>  u.id === socket.handshake.query.oldSocket && u.name === u.name)) {
@@ -97,7 +96,22 @@ io.sockets.on(socketKeys.Connection, (socket) => {
         });
     });
 
+
+    socket.on(socketKeys.StartGame, (data) => {
+        if (listServer.has(data.roomId)) {
+            listServer.get(data.roomId).status = 'S';
+            listServer.get(data.roomId).deck = createDeck(listServer.get(data.roomId).configs.nbDeck);
+            // send in room including sender
+            io.in(data.roomId).emit(socketKeys.StartGame, {
+                table: listServer.get(data.roomId)
+            });
+        } else {
+            // ERROR
+        }
+    });
+
     socket.on(socketKeys.Trigger, () => {
+
         io.to(socket.id).emit('trigger');
     });
 
@@ -109,7 +123,7 @@ io.sockets.on(socketKeys.Connection, (socket) => {
 
 const extractServerName = () => {
     return Array.from( listServer.values());
-}
+};
 
 const createRoomId = (length = 64) => {
     var result = '';
@@ -119,4 +133,52 @@ const createRoomId = (length = 64) => {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
+};
+
+/**
+ * permet de mélanger le paquet de carte de façon aléatoire
+ * @param {liste à mélanger} deck 
+ */
+const shuffleDeck = (deck) => {
+    var j = 0;
+    var valI = '';
+    var valJ = valI;
+    var l = deck.length - 1;
+    while (l > -1) {
+        j = Math.floor(Math.random() * l);
+        valI = deck[l];
+        valJ = deck[j];
+        deck[l] = valJ;
+        deck[j] = valI;
+        l = l - 1;
+    }
+    return deck;
+};
+
+/**
+ * Permet de générer un nombre X de paquet de carte
+ * @param {Nombre de deck} nbDeck 
+ */
+const createDeck = (nbDeck = 1) => {
+    const symbol = ['C', 'D', 'H', 'S'];
+    const special = ['J', 'Q', 'K']
+    let decks = [];
+    for (let deck = 1; deck <= nbDeck; deck++) {
+        for (let index = 1; index <= 13; index++) {
+            for (let j = 0; j < symbol.length; j++) {
+                if (index === 1) {
+                    decks.push({deck: deck, name: 'A'+symbol[j], value: 1 | 10});
+                } else if (index === 11) {
+                    decks.push({deck: deck, name: 'J'+symbol[j], value: 10});
+                } else if (index === 12) {
+                    decks.push({deck: deck, name: 'Q'+symbol[j], value: 10});
+                } else if (index === 13) {
+                    decks.push({deck: deck, name: 'K'+symbol[j], value: 10});
+                } else {
+                    decks.push({deck: deck, name: index.toString() + symbol[j], value: index});
+                }
+            }
+        }
+    }
+    return shuffleDeck(decks);
 };
