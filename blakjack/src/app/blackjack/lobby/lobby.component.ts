@@ -65,6 +65,9 @@ export class LobbyComponent implements OnInit {
   onStartGame() {
     alert('TODO START GAME');
     // this.showTable = true;
+    this.socket.emit(SocketKey.StartGame, {
+      roomId: this.table.id
+    });
   }
 
   onRemovePlayer() {
@@ -85,7 +88,13 @@ export class LobbyComponent implements OnInit {
       }
     });
 
+
+    this.socket.on(SocketKey.StartGame, data => {
+      console.log(data);
+    });
+
     this.socket.on(SocketKey.PlayerJoin, data => {
+
       if (data.status === 'success') {
         this.manageUI(data);
       }
