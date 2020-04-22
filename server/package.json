@@ -1,0 +1,9 @@
+{
+    "name": "casino",
+    "version": "0.1.0",
+    "dependencies": {
+        "ent": "^0.1.0",
+        "express": "^3.3.8",
+        "socket.io": "^1.2.1"
+    }
+}
