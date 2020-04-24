@@ -1,25 +1,22 @@
 
 
 class Table {
-    constructor(id = '', name = '', { nbDeck = 1, type = 1}) {
+    constructor(id = '', name = '', nbDeck = 1, type = 1) {
       this.id = id;
       this.type = 'blackjack';
       this.name = name;
       this.users = [];
-      this.configs = {
-          nbDeck: nbDeck,
-      },
-      this.deck = [];
-      this.bank = [];
+      this.nbDeck = nbDeck,
+      this.deck;
+      this.bank = {
+        hand: [],
+        discardCard: []
+      };
       this.status = 'P';
     }
 
     getUser() {
         return this.users.slice();
-    }
-
-    getDeck() {
-        return this.deck.slice();
     }
     
     startedTable() {

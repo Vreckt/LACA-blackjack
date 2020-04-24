@@ -17,6 +17,7 @@ const socketKeys = {
 
     //Game
     StartGame: 's-game',
+    DrawCard: 'd-card',
 
     // Simple Action
     Connection: 'connection',
@@ -24,6 +25,7 @@ const socketKeys = {
     
     // Others
     Trigger: 'Trigger',
+    Error: 'Error'
 }
 
 

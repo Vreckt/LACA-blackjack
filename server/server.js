@@ -20,7 +20,6 @@ server.listen(port, () => {
     console.log('Server listening at port %d', port);
 });
 
-
 // sockets
 io.on(socketKeys.Connection, (socket) => {
     console.log('User connected !');
@@ -48,7 +47,7 @@ io.on(socketKeys.Connection, (socket) => {
     socket.on(socketKeys.NewLobby, (data) => {
         const roomId = createRoomId(32) + user.id;
         if (!listServer.has(roomId)) {
-            listServer.set(roomId, new Table(roomId, data.roomName, {nbDeck: 1}));
+            listServer.set(roomId, new Table(roomId, data.roomName, 1));
             io.to(socket.id).emit(socketKeys.NewLobby, { roomId: roomId, roomName: data.roomName});
             socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
         } else {
@@ -106,17 +105,56 @@ io.on(socketKeys.Connection, (socket) => {
 
     socket.on(socketKeys.StartGame, (data) => {
         if (listServer.has(data.roomId)) {
-            listServer.get(data.roomId).status = 'S';
-            // listServer.get(data.roomId).deck = createDeck(listServer.get(data.roomId).configs.nbDeck);
-            const deck = new decks.StandardDeck({nbDeck: listServer.get(data.roomId).configs.nbDeck})
-            deck.shuffleAll();
-            listServer.get(data.roomId).deck = deck;
+            let table = new Table();
+            table = listServer.get(data.roomId);
+            table.startedTable();
+            table.deck = new decks.StandardDeck({nbDeck: table.nbDeck});
+            table.deck.shuffleAll();
+            let i = 0;
+            while (i < table.users.length * 2) {
+                for (const player of table.users) {
+                    player.hand.push(drawCard(table.deck.draw(1)));
+                }
+                i++;
+            }
+            table.bank.hand.push(drawCard(table.deck.draw(1)));
+            table.bank.hand.push(drawCard(table.deck.draw(1)));
+            table.bank.hand[1].visible = false;
+            listServer.set(data.roomId, table);
             // send in room including sender
             io.in(data.roomId).emit(socketKeys.StartGame, {
                 table: listServer.get(data.roomId)
             });
         } else {
-            // ERROR
+            io.to(socket.id).emit(socketKeys.Error);
+        }
+    });
+
+    socket.on(socketKeys.DrawCard, (data) => {
+        if (listServer.has(data.roomId)) {
+            let table = new Table();
+            table = listServer.get(data.roomId);
+            // récupère l'index du joueur dans la liste ed la table
+            const playerIndex = table.users.findIndex(u => u.id === data.userId);
+            if (table.users[playerIndex]) {
+                // draw une carte
+                let tmp = table.deck.draw(1);
+                const card = drawCard(tmp);
+                // j'ajoue la parte dans la main du joueur
+                table.users[playerIndex].hand.push(card);
+                const { point, blackjack, win } = manageBlackjack(table.users[playerIndex].hand);
+                listServer.set(data.roomId, table);
+                // on envoit à toutes la room
+                io.in(data.roomId).emit(socketKeys.DrawCard, {
+                    userId: userId,
+                    cardDraw: card,
+                    point: point,
+                    isWin: win,
+                    isBlackJack: blackjack,
+                    isShowDrawButton: false,
+                    isShowDoubleButton: false
+                });
+            }
         }
     });
 
@@ -145,50 +183,51 @@ const createRoomId = (length = 64) => {
     return result;
 };
 
-/**
- * permet de mélanger le paquet de carte de façon aléatoire
- * @param {liste à mélanger} deck 
- */
-const shuffleDeck = (deck) => {
-    var j = 0;
-    var valI = '';
-    var valJ = valI;
-    var l = deck.length - 1;
-    while (l > -1) {
-        j = Math.floor(Math.random() * l);
-        valI = deck[l];
-        valJ = deck[j];
-        deck[l] = valJ;
-        deck[j] = valI;
-        l = l - 1;
+const drawCard = (cardDraw) => {
+// refait un objet carte plus simplifié 
+    const card = {
+        // ex: AS | 10S ...
+        name: cardDraw[0].rank.shortName + cardDraw[0].suit.name,
+        shortName:  cardDraw[0].rank.shortName,
+        visible: true,
+        value: 0
+    };
+    if (['A', 'J', 'Q', 'K'].includes(cardDraw[0].rank.shortName)) {
+        // si c'est un AS
+        if (cardDraw[0].rank.shortName === 'A') {
+            card.value = 1 | 11;
+        } else {
+            // si c'est autre chose
+            card.value = 10;
+        }
+    } else {
+        // si oui j'ajoute la valeur dans value
+        card.value = +card.shortName;
     }
-    return deck;
+    return card;
 };
 
-/**
- * Permet de générer un nombre X de paquet de carte
- * @param {Nombre de deck} nbDeck 
- */
-const createDeck = (nbDeck = 1) => {
-    const symbol = ['C', 'D', 'H', 'S'];
-    const special = ['J', 'Q', 'K']
-    let decks = [];
-    for (let deck = 1; deck <= nbDeck; deck++) {
-        for (let index = 1; index <= 13; index++) {
-            for (let j = 0; j < symbol.length; j++) {
-                if (index === 1) {
-                    decks.push({deck: deck, name: 'A'+symbol[j], value: 1 | 10});
-                } else if (index === 11) {
-                    decks.push({deck: deck, name: 'J'+symbol[j], value: 10});
-                } else if (index === 12) {
-                    decks.push({deck: deck, name: 'Q'+symbol[j], value: 10});
-                } else if (index === 13) {
-                    decks.push({deck: deck, name: 'K'+symbol[j], value: 10});
-                } else {
-                    decks.push({deck: deck, name: index.toString() + symbol[j], value: index});
-                }
+const manageBlackjack = (listCards) => {
+    let point = 0;
+    let isBlackJack = false;
+    let isWin = false;
+    for (const card of listCards) {
+        if (card.shortName === 'A') {
+            if (point > 10) {
+                ++point;
+            } else if (point < 10) {
+                point += 11;
+            } else if (point == 10) {
+                point += 11;
+                isWin = true;
+                isBlackJack = true;
+            } else {
+                point += 11;
+                isWin = false
             }
+        } else {
+            point += card.value;
         }
     }
-    return shuffleDeck(decks);
+    return { point: point, isBlackJack: isBlackJack, isWin: isWin };
 };

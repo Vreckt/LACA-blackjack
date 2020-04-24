@@ -62,8 +62,6 @@ export class LobbyComponent implements OnInit {
   }
 
   onStartGame() {
-    alert('TODO START GAME');
-    // this.showTable = true;
     this.socket.emit(SocketKey.StartGame, {
       roomId: this.table.id
     });
@@ -92,6 +90,8 @@ export class LobbyComponent implements OnInit {
     });
 
     this.socket.on(SocketKey.StartGame, data => {
+      this.showTable = true;
+      this.player = data.table.users.find(p => p.id === this.player.id);
       console.log(data);
     });
 
