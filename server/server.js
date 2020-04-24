@@ -25,7 +25,7 @@ io.on(socketKeys.Connection, (socket) => {
     console.log('User connected !');
     let user = new Player(socket.conn.id, socket.handshake.query.username);
 
-    if (listPlayers.find(u =>  u.id === socket.handshake.query.oldSocket && u.name === u.name)) {
+    if (listPlayers.find(u =>  u.id === socket.handshake.query.oldSocket)) {
         socket.conn.id = socket.handshake.query.oldSocket;
         user.id = socket.handshake.query.oldSocket;
         for (const usr of listPlayers) {
@@ -96,11 +96,14 @@ io.on(socketKeys.Connection, (socket) => {
         if (listServer.has(data.roomId)) {
             let table = new Table();
             table = listServer.get(data.roomId);
+            for (const player of table.users) {
+                player.hand = [];
+            }
             table.startedTable();
             table.deck = new decks.StandardDeck({nbDeck: table.nbDeck});
             table.deck.shuffleAll();
             let i = 0;
-            while (i < table.users.length * 2) {
+            while (i < table.users.length) {
                 for (const player of table.users) {
                     player.hand.push(drawCard(table.deck.draw(1)));
                 }
@@ -112,7 +115,8 @@ io.on(socketKeys.Connection, (socket) => {
             listServer.set(data.roomId, table);
             // send in room including sender
             io.in(data.roomId).emit(socketKeys.StartGame, {
-                table: listServer.get(data.roomId)
+                table: listServer.get(data.roomId),
+                round:table.users[0].id
             });
         } else {
             io.to(socket.id).emit(socketKeys.Error);
@@ -127,21 +131,21 @@ io.on(socketKeys.Connection, (socket) => {
             const playerIndex = table.users.findIndex(u => u.id === data.userId);
             if (table.users[playerIndex]) {
                 // draw une carte
-                let tmp = table.deck.draw(1);
-                const card = drawCard(tmp);
+                const card = drawCard(table.deck.draw(1));
                 // j'ajoue la parte dans la main du joueur
                 table.users[playerIndex].hand.push(card);
                 const { point, blackjack, win } = manageBlackjack(table.users[playerIndex].hand);
                 listServer.set(data.roomId, table);
                 // on envoit à toutes la room
                 io.in(data.roomId).emit(socketKeys.DrawCard, {
-                    userId: userId,
+                    userId: data.userId,
                     cardDraw: card,
                     point: point,
                     isWin: win,
                     isBlackJack: blackjack,
                     isShowDrawButton: false,
-                    isShowDoubleButton: false
+                    isShowDoubleButton: false,
+                    table: table
                 });
             }
         }

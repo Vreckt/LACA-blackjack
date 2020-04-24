@@ -29,7 +29,7 @@ export class LobbyComponent implements OnInit {
     }
 
   ngOnInit() {
-    this.socket = this.socketBlackJackService.socket ? this.socketBlackJackService.socket : this.socketBlackJackService.getSocket();
+    this.socket = this.socketBlackJackService.socket ? this.socketBlackJackService.socket : '';
     if (this.socket) {
       this.aftersocketInit();
     } else {
@@ -52,6 +52,7 @@ export class LobbyComponent implements OnInit {
 
   private manageUI(data) {
     this.table = data.table;
+    this.showTable = this.table.status === 'S' ? true : false;
     const playerIndex = this.table.users.findIndex(user =>
       user.id === this.socketBlackJackService.getConnectionId() && user.name === localStorage.getItem('username')
     );
@@ -72,6 +73,22 @@ export class LobbyComponent implements OnInit {
     alert('TODO REMOVE PLAYER');
   }
 
+  drawCard() {
+    console.log(this.tableId, this.player.id);
+    this.socket.emit(SocketKey.DrawCard, ({
+      roomId: this.tableId,
+      userId: this.player.id
+    }));
+  }
+
+  doubleCredits() {
+
+  }
+
+  endRound() {
+
+  }
+
   onLeaveTable() {
     // alert('TODO LEAVE TABLE');
     this.socket.emit(SocketKey.LeaveTable, {roomId: this.table.id});
@@ -86,13 +103,6 @@ export class LobbyComponent implements OnInit {
       }
     });
 
-
-    this.socket.on(SocketKey.StartGame, data => {
-      this.showTable = true;
-      this.player = data.table.users.find(p => p.id === this.player.id);
-      console.log(data);
-    });
-
     this.socket.on(SocketKey.PlayerJoin, data => {
 
       if (data.status === 'success') {
@@ -103,6 +113,19 @@ export class LobbyComponent implements OnInit {
       if (data.status === 'success') {
         this.manageUI(data);
       }
+    });
+
+
+    this.socket.on(SocketKey.StartGame, data => {
+      this.showTable = true;
+      this.player = data.table.users.find(p => p.id === this.player.id);
+      console.log(data);
+      this.manageUI(data);
+    });
+
+    this.socket.on(SocketKey.DrawCard, data => {
+      console.log(data);
+      this.manageUI(data);
     });
   }
 }

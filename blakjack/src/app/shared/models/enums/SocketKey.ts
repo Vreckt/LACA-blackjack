@@ -14,8 +14,9 @@ export enum SocketKey {
     // Status
     Connected = 'connected',
 
-    //Game
+    // Game
     StartGame = 's-game',
+    DrawCard = 'd-card',
 
     // Simple Action
     Connection = 'connection',
