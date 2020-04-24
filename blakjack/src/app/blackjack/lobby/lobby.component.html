@@ -26,7 +26,7 @@
 
           </div>
           <div class="player-action-area">
-            
+
           </div>
         </div>
       </div>
@@ -39,15 +39,15 @@
         <div *ngFor="let user of table.users" fxLayout="column" fxLayoutAlign="center" class="lobby-user">
             <div>{{ user.name }}</div>
             <div *ngIf="isAdmin">
-                <button (click)="onRemovePlayer()">Exclure</button>
+                <button (click)="onRemovePlayer(user.id)">Exclure</button>
             </div>
         </div>
-        
+
       </div>
       <br>
       <button *ngIf="isAdmin" (click)="onStartGame()">Commencer</button>
       <button (click)="onLeaveTable()">Quitter</button>
     </div>
-   
+
 </div>
 <!-- <button (click)="trigger()">trigger</button> -->
