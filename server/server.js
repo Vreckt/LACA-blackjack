@@ -112,11 +112,11 @@ io.on(socketKeys.Connection, (socket) => {
             table.bank.hand.push(drawCard(table.deck.draw(1)));
             table.bank.hand.push(drawCard(table.deck.draw(1)));
             table.bank.hand[1].visible = false;
+            table.currentPlayer = user.id;
             listServer.set(data.roomId, table);
             // send in room including sender
             io.in(data.roomId).emit(socketKeys.StartGame, {
-                table: listServer.get(data.roomId),
-                round:table.users[0].id
+                table: listServer.get(data.roomId)
             });
         } else {
             io.to(socket.id).emit(socketKeys.Error);
@@ -134,15 +134,15 @@ io.on(socketKeys.Connection, (socket) => {
                 const card = drawCard(table.deck.draw(1));
                 // j'ajoue la parte dans la main du joueur
                 table.users[playerIndex].hand.push(card);
-                const { point, blackjack, win } = manageBlackjack(table.users[playerIndex].hand);
+                const { point, isBlackJack, isWin } = manageBlackjack(table.users[playerIndex].hand);
                 listServer.set(data.roomId, table);
                 // on envoit à toutes la room
                 io.in(data.roomId).emit(socketKeys.DrawCard, {
                     userId: data.userId,
                     cardDraw: card,
                     point: point,
-                    isWin: win,
-                    isBlackJack: blackjack,
+                    isWin: isWin,
+                    isBlackJack: isBlackJack,
                     isShowDrawButton: false,
                     isShowDoubleButton: false,
                     table: table

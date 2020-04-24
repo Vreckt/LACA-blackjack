@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack.service';
 import { SocketKey } from '../../shared/models/enums/SocketKey';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-lobby',
@@ -15,13 +16,15 @@ export class LobbyComponent implements OnInit {
   table = null;
   player = null;
   isAdmin = false;
+  enableActionBtn = false;
   showTable = false;
   private socket: any = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private socketBlackJackService: SocketBlackJackService
+    private socketBlackJackService: SocketBlackJackService,
+    private snackBar: MatSnackBar
     ) {
       this.route.paramMap.subscribe(params => {
         this.tableId = params.get('id');
@@ -57,7 +60,7 @@ export class LobbyComponent implements OnInit {
       user.id === this.socketBlackJackService.getConnectionId() && user.name === localStorage.getItem('username')
     );
     this.player = this.table.users.splice(playerIndex, 1)[0];
-    console.log(this.player);
+    this.enableActionBtn = !(this.player.id === data.table.currentPlayer);
     if (this.table.id.includes(this.socketBlackJackService.getConnectionId())) {
       this.isAdmin = true;
     }
@@ -74,7 +77,6 @@ export class LobbyComponent implements OnInit {
   }
 
   drawCard() {
-    console.log(this.tableId, this.player.id);
     this.socket.emit(SocketKey.DrawCard, ({
       roomId: this.tableId,
       userId: this.player.id
@@ -95,6 +97,12 @@ export class LobbyComponent implements OnInit {
     this.router.navigate(['../'], { relativeTo: this.route });
   }
 
+  showRoundPlayer(user: string) {
+    this.snackBar.open('A ' + user + ' de jouer !', null, {
+      duration: 1500,
+    });
+  }
+
   private setupSocketConnection() {
     this.socket.on(SocketKey.JoinTable, data => {
       if (data.status === 'success') {
@@ -102,9 +110,7 @@ export class LobbyComponent implements OnInit {
         this.init = true;
       }
     });
-
     this.socket.on(SocketKey.PlayerJoin, data => {
-
       if (data.status === 'success') {
         this.manageUI(data);
       }
@@ -119,7 +125,9 @@ export class LobbyComponent implements OnInit {
     this.socket.on(SocketKey.StartGame, data => {
       this.showTable = true;
       this.player = data.table.users.find(p => p.id === this.player.id);
-      console.log(data);
+      this.enableActionBtn = !(this.player.id === data.round);
+      const tmpuser = data.table.users.find(u => u.id === data.round);
+      this.showRoundPlayer(tmpuser.name);
       this.manageUI(data);
     });
 

@@ -12,6 +12,7 @@ class Table {
         hand: [],
         discardCard: []
       };
+      this.currentPlayer = '';
       this.status = 'P';
     }
 
