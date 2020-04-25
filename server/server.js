@@ -152,13 +152,14 @@ io.on(socketKeys.Connection, (socket) => {
     });
 
     socket.on('EndTurn', (data) => {
-        // treatment
-
-        // const response = manageBlackjack();
-        // response.table = listServer.get(data.roomId);
-        io.in(data.roomId).emit(socketKeys.TurnPlayer, {
-            table: listServer.get(data.roomId)
-        });
+        if (listServer.get(data.roomId).users.findIndex(u => u.id === data.userId) === (listServer.get(data.roomId).users.length - 1)) {
+            // Logan
+        } else {
+            // Alex
+            const response = manageBlackjack(table.users.find(u => u.id === user.id).hand, user.id);
+            response.table = listServer.get(data.roomId);
+            io.in(data.roomId).emit(socketKeys.TurnPlayer, response);
+        }
     });
 
     socket.on(socketKeys.Trigger, () => {

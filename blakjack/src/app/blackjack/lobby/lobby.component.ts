@@ -90,7 +90,10 @@ export class LobbyComponent implements OnInit {
   }
 
   endRound() {
-
+    this.socket.emit('EndTurn', {
+      roomId: this.tableId,
+      userId: this.player.id
+    });
   }
 
   onLeaveTable() {
