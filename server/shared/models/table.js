@@ -1,5 +1,3 @@
-
-
 class Table {
     constructor(id = '', name = '', nbDeck = 1, type = 1) {
       this.id = id;
@@ -30,4 +28,4 @@ class Table {
   
 }
 
-  module.exports = Table;
+module.exports = Table;

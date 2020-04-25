@@ -59,7 +59,9 @@ export class LobbyComponent implements OnInit {
     const playerIndex = this.table.users.findIndex(user =>
       user.id === this.socketBlackJackService.getConnectionId() && user.name === localStorage.getItem('username')
     );
+    console.log(playerIndex);
     this.player = this.table.users.splice(playerIndex, 1)[0];
+    console.log(this.player);
     this.enableActionBtn = !(this.player.id === data.table.currentPlayer);
     if (this.table.id.includes(this.socketBlackJackService.getConnectionId())) {
       this.isAdmin = true;
@@ -105,12 +107,14 @@ export class LobbyComponent implements OnInit {
 
   private setupSocketConnection() {
     this.socket.on(SocketKey.JoinTable, data => {
+      console.log(data);
       if (data.status === 'success') {
         this.manageUI(data);
         this.init = true;
       }
     });
     this.socket.on(SocketKey.PlayerJoin, data => {
+      console.log(data);
       if (data.status === 'success') {
         this.manageUI(data);
       }
@@ -121,13 +125,20 @@ export class LobbyComponent implements OnInit {
       }
     });
 
+    this.socket.on(SocketKey.TurnPlayer, data => {
+      console.log(data);
+      this.manageUI(data);
+      const tmpuser = data.table.users.find(u => u.id === data.userId);
+      console.log(tmpuser);
+      this.showRoundPlayer(tmpuser.name);
+    });
+
 
     this.socket.on(SocketKey.StartGame, data => {
+      console.log(data);
       this.showTable = true;
       this.player = data.table.users.find(p => p.id === this.player.id);
-      this.enableActionBtn = !(this.player.id === data.round);
-      const tmpuser = data.table.users.find(u => u.id === data.round);
-      this.showRoundPlayer(tmpuser.name);
+      this.enableActionBtn = !(this.player.id === data.currentPlayer);
       this.manageUI(data);
     });
 
