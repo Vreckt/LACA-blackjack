@@ -27,7 +27,9 @@ export class BlackjackComponent implements OnInit {
 
   ngOnInit() {
     this.username = localStorage.getItem('username');
-    if (this.username) { this.initConnectionServer(); }
+    if (this.username) {
+      this.initConnectionServer();
+    }
     this.formNewTable = new FormGroup({
       roomName: new FormControl('', Validators.required)
     });
@@ -59,19 +61,15 @@ export class BlackjackComponent implements OnInit {
   private setupSocketConnection() {
     this.socket.on(SocketKey.Connected, data => {
       this.socketService.keepConnectionId(data.id);
-      this.socketService.keepSocket(this.socket);
       this.socketService.listServers = data.servers;
       this.listTables = data.servers;
     });
 
     this.socket.on(SocketKey.NewLobby, data => {
-      console.log(data.roomId);
-      console.log(data);
       this.router.navigate([data.roomId], { relativeTo: this.route });
     });
 
     this.socket.on(SocketKey.UpdateLobby, data => {
-      console.log(data);
       this.socketService.listServers = data.servers;
       this.listTables = data.servers;
     });

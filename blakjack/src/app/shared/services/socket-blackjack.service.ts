@@ -37,13 +37,4 @@ export class SocketBlackJackService {
   getConnectionId() {
     return localStorage.getItem('connId');
   }
-
-  keepSocket(connId) {
-      localStorage.setItem('socket', connId);
-  }
-
-  getSocket() {
-    localStorage.getItem('socket');
-  }
-
 }

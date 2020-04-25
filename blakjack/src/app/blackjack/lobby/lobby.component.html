@@ -11,8 +11,12 @@
           <div class="other-header" fxLayoutAlign="space-between">
             <div>{{ user.name }}</div>
           </div>
-          <div class="other-card-area">
-
+          <div class="other-card-area"  fxlayout="row" fxLayoutAlign="center center">
+              <div class="other-card"
+              *ngFor="let card of user.hand"
+              style="background-image: url(../../../assets/images/cards/{{card.name}}.jpg);"
+              fxlayout="row">
+              </div>
           </div>
         </div>
       </div>
@@ -27,7 +31,12 @@
               <!-- {{card.name}} -->
             </div>
           </div>
-          <div class="player-action-area">
+
+          <div class="player-action-area" fxLayout="row">
+            <button (click)="drawCard()" [disabled]="enableActionBtn">Piocher</button>
+            <!-- <button [disabled]="enableActionBtn">Doubler</button> -->
+            <button [disabled]="enableActionBtn">Fin de tour</button>
+            <button (click)="onLeaveTable()" [disabled]="enableActionBtn">Quitter</button>
 
           </div>
         </div>
