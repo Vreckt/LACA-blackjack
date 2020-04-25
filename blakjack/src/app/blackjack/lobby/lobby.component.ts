@@ -61,8 +61,10 @@ export class LobbyComponent implements OnInit {
     );
     console.log(playerIndex);
     this.player = this.table.users.splice(playerIndex, 1)[0];
-    console.log(this.player);
+
+
     this.enableActionBtn = !(this.player.id === data.table.currentPlayer);
+
     if (this.table.id.includes(this.socketBlackJackService.getConnectionId())) {
       this.isAdmin = true;
     }
@@ -74,8 +76,12 @@ export class LobbyComponent implements OnInit {
     });
   }
 
-  onRemovePlayer() {
-    alert('TODO REMOVE PLAYER');
+  onRemovePlayer(id: string) {
+    this.socket.emit(SocketKey.PlayerKick, {
+      roomId: this.table.id,
+      currentPlayerId: this.player.id,
+      kickPlayerId: id
+    });
   }
 
   drawCard() {
@@ -116,18 +122,24 @@ export class LobbyComponent implements OnInit {
         this.init = true;
       }
     });
+
     this.socket.on(SocketKey.PlayerJoin, data => {
       console.log(data);
       if (data.status === 'success') {
         this.manageUI(data);
       }
     });
+
     this.socket.on(SocketKey.PlayerLeave, data => {
       if (data.status === 'success') {
         this.manageUI(data);
       }
     });
 
+
+
+
+    
     this.socket.on(SocketKey.TurnPlayer, data => {
       console.log(data);
       this.manageUI(data);
@@ -137,6 +149,7 @@ export class LobbyComponent implements OnInit {
     });
 
 
+    
     this.socket.on(SocketKey.StartGame, data => {
       console.log(data);
       this.showTable = true;
@@ -145,9 +158,24 @@ export class LobbyComponent implements OnInit {
       this.manageUI(data);
     });
 
+
+   
     this.socket.on(SocketKey.DrawCard, data => {
       console.log(data);
       this.manageUI(data);
+    });
+
+
+    
+     this.socket.on(SocketKey.PlayerKick, data => {
+      console.log(data.kickPlayer);
+      if (this.player.id === data.kickPlayer.id) {
+        this.onLeaveTable();
+        alert('Vous avez été kické par l\'admin');
+      } else {
+        alert('Le joueur ' + data.kickPlayer.name + ' a été expulsé du lobby par l\'admin');
+      }
+
     });
   }
 }

@@ -84,6 +84,17 @@ io.on(socketKeys.Connection, (socket) => {
         }
     });
 
+    socket.on(socketKeys.PlayerKick, (data) => {
+        if (data.roomId.includes(data.currentPlayerId)) { //if yes, it's an admin
+            const kickPlayer = listPlayers.find(p => p.id === data.kickPlayerId);
+            if (kickPlayer) {
+                io.to(data.roomId).emit(socketKeys.PlayerKick, {
+                    kickPlayer: kickPlayer
+                });
+            }
+      } 
+    });
+
     socket.on(socketKeys.LeaveTable, (data) => {
         socket.leave(data.roomId);
         const usrIndex = listServer.get(data.roomId).users.findIndex(u => u.id === user.id);
@@ -214,7 +225,7 @@ const manageBlackjack = (listCards, userId) => {
     let point = 0;
     let isBlackJack = false;
     let isWin = false;
-    const sortedCardList = listCards.sort((a, b) => { return a.value - b.value });
+    const sortedCardList = listCards.slice().sort((a, b) => { return a.value - b.value });
     for (const card of sortedCardList) {
         if (card.shortName != 'A') {
             point += card.value;
