@@ -54,7 +54,7 @@ export class LobbyComponent implements OnInit {
   }
 
   private manageUI(data) {
-    this.table = data.table;
+    this.table = JSON.parse(JSON.stringify(data.table));
     this.showTable = this.table.status === 'S' ? true : false;
     const playerIndex = this.table.users.findIndex(user =>
       user.id === this.socketBlackJackService.getConnectionId() && user.name === localStorage.getItem('username')
