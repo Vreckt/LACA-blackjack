@@ -28,7 +28,7 @@
             </div>
           </div>
           <div class="player-action-area">
-            
+
           </div>
         </div>
       </div>
@@ -38,25 +38,27 @@
         <div fxLayout="column" fxLayoutAlign="space-between" class="lobby-user">
           <div></div>
           <div  fxLayoutAlign="center">
-            <mat-icon (click)="onRemovePlayer()" color="primary">person</mat-icon>
+            <mat-icon color="primary">person</mat-icon>
           </div>
           <div fxLayoutAlign="center">{{ player.name }}</div>
         </div>
+
         <div *ngFor="let user of table.users" fxLayout="column" fxLayoutAlign="space-between" class="lobby-user">
             <div class="lobby-user-header" fxLayout="row" fxLayoutAlign="end">
-              <mat-icon *ngIf="isAdmin" (click)="onRemovePlayer()" color="primary">close</mat-icon>
+              <mat-icon *ngIf="isAdmin" (click)="onRemovePlayer(user.id)" color="primary">close</mat-icon>
             </div>
             <div  fxLayoutAlign="center">
-              <mat-icon (click)="onRemovePlayer()" color="primary">person</mat-icon>
+              <mat-icon color="primary">person</mat-icon>
+
             </div>
             <div fxLayoutAlign="center">{{ user.name }}</div>
         </div>
-        
+
       </div>
       <br>
       <button *ngIf="isAdmin" (click)="onStartGame()">Commencer</button>
       <button (click)="onLeaveTable()">Quitter</button>
     </div>
-   
+
 </div>
 <!-- <button (click)="trigger()">trigger</button> -->

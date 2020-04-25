@@ -56,7 +56,6 @@ export class LobbyComponent implements OnInit {
       user.id === this.socketBlackJackService.getConnectionId() && user.name === localStorage.getItem('username')
     );
     this.player = this.table.users.splice(playerIndex, 1)[0];
-    console.log(this.player);
     if (this.table.id.includes(this.socketBlackJackService.getConnectionId())) {
       this.isAdmin = true;
     }
@@ -68,8 +67,12 @@ export class LobbyComponent implements OnInit {
     });
   }
 
-  onRemovePlayer() {
-    alert('TODO REMOVE PLAYER');
+  onRemovePlayer(id: string) {
+    this.socket.emit(SocketKey.PlayerKick, {
+      roomId: this.table.id,
+      currentPlayerId: this.player.id,
+      kickPlayerId: id
+    });
   }
 
   onLeaveTable() {
@@ -86,7 +89,6 @@ export class LobbyComponent implements OnInit {
       }
     });
 
-
     this.socket.on(SocketKey.StartGame, data => {
       this.showTable = true;
       this.player = data.table.users.find(p => p.id === this.player.id);
@@ -99,9 +101,20 @@ export class LobbyComponent implements OnInit {
         this.manageUI(data);
       }
     });
+
     this.socket.on(SocketKey.PlayerLeave, data => {
       if (data.status === 'success') {
         this.manageUI(data);
+      }
+    });
+
+    this.socket.on(SocketKey.PlayerKick, data => {
+      console.log(data.kickPlayer);
+      if (this.player.id === data.kickPlayer.id) {
+        this.onLeaveTable();
+        alert('Vous avez été kické par l\'admin');
+      } else {
+        alert('Le joueur ' + data.kickPlayer.name + ' a été expulsé du lobby par l\'admin');
       }
     });
   }

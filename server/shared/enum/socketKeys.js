@@ -10,6 +10,7 @@ const socketKeys = {
     // Player Action
     PlayerJoin: 'p-join',
     PlayerLeave: 'p-leave',
+    PlayerKick: 'p-kick',
   
     // Status
     Connected: 'connected',
