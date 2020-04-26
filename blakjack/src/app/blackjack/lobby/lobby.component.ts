@@ -112,6 +112,7 @@ export class LobbyComponent implements OnInit {
   showRoundPlayer(user: string) {
     this.snackBar.open('A ' + user + ' de jouer !', null, {
       duration: 1500,
+      verticalPosition: 'top'
     });
   }
 
