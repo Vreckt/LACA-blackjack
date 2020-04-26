@@ -165,6 +165,29 @@ io.on(socketKeys.Connection, (socket) => {
     socket.on('EndTurn', (data) => {
         if (listServer.get(data.roomId).users.findIndex(u => u.id === data.userId) === (listServer.get(data.roomId).users.length - 1)) {
             // Logan
+            io.in(data.roomId).emit('bankShowCard');
+            const response = manageBlackjack(listServer.get(data.roomId).bank.hand);
+            if (response.point < 17) {
+                while (response.point < 17) {
+                    const card = drawCard(table.deck.draw(1));
+                    table.bank.hand.push(card);
+                    response = manageBlackjack(listServer.get(data.roomId).bank.hand);
+                }
+                for (let i = 2; i < table.bank.hand.length; i++) {
+                    setTimeout(()=>{
+                        console.log(i);
+                        response.cardDraw = table.bank.hand[i];
+                        response.table = table;
+                        io.in(data.roomId).emit('bankDrawCard', response);
+                        if (i === table.bank.hand.length - 1){ 
+                            console.log('finish');
+                            // TODO Fin partie
+                        }
+                    }, i * 1000);
+                }
+            } else {
+                // TODO Fin partie
+            }
         } else {
             // Alex
             const response = manageBlackjack(table.users.find(u => u.id === user.id).hand, user.id);
