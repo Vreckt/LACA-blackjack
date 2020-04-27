@@ -162,26 +162,31 @@ io.on(socketKeys.Connection, (socket) => {
         }
     });
 
-    socket.on('EndTurn', (data) => {
+    socket.on(socketKeys.EndTurn, (data) => {
         if (listServer.get(data.roomId).users.findIndex(u => u.id === data.userId) === (listServer.get(data.roomId).users.length - 1)) {
-            // Logan
-            io.in(data.roomId).emit('bankShowCard');
-            const response = manageBlackjack(listServer.get(data.roomId).bank.hand);
+            let table = listServer.get(data.roomId);
+            let response = manageBlackjack(table.bank.hand);
+            table.bank.hand[1].visible = true;
+            response.table = table;
+            // permet d'envoyer à tout le monde la liste des cartes de la banque avec toutes les cartes retournées
+            io.in(data.roomId).emit(socketKeys.BankShowCard, response);
+            // on copie la main de la bank dans une nouvelle liste
+            let cardsDraw = table.bank.hand.slice();
             if (response.point < 17) {
+                // on fait tirer la bank tant que son nombre de quoi n'est pas supérieur ou égal à 17
                 while (response.point < 17) {
-                    const card = drawCard(table.deck.draw(1));
-                    table.bank.hand.push(card);
-                    response = manageBlackjack(listServer.get(data.roomId).bank.hand);
+                    cardsDraw.push(drawCard(table.deck.draw(1)));
                 }
-                for (let i = 2; i < table.bank.hand.length; i++) {
+                response = manageBlackjack(cardsDraw);
+                // on boucle sur la liste qu'on à créer pour envoyer à tout le monde une carte à la fois
+                for (let i = 2; i < cardsDraw.length; i++) {
                     setTimeout(()=>{
-                        console.log(i);
-                        response.cardDraw = table.bank.hand[i];
+                        response.cardDraw = cardsDraw[i];
+                        table.bank.hand.push(cardsDraw[i]);
                         response.table = table;
-                        io.in(data.roomId).emit('bankDrawCard', response);
-                        if (i === table.bank.hand.length - 1){ 
-                            console.log('finish');
-                            // TODO Fin partie
+                        io.in(data.roomId).emit(socketKeys.BankDrawCard, response);
+                        if (i === cardsDraw.length - 1){
+                            table = table.status = 'F';
                         }
                     }, i * 1000);
                 }

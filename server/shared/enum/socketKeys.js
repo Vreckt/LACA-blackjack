@@ -22,6 +22,9 @@ const socketKeys = {
     //Game
     StartGame: 's-game',
     DrawCard: 'd-card',
+    EndTurn: 'EndTurn',
+    BankShowCard: 'bankShowCard',
+    BankDrawCard: 'bankDrawCard',
 
     // Simple Action
     Connection: 'connection',
