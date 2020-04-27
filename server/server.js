@@ -167,29 +167,28 @@ io.on(socketKeys.Connection, (socket) => {
     socket.on(socketKeys.PlayerEnd, (data) => {
         var currentTable = listServer.get(data.roomId);
         if (currentTable.users.findIndex(u => u.id === data.userId) === (currentTable.users.length - 1)) {
-            let table = listServer.get(data.roomId);
-            let response = manageBlackjack(table.bank.hand);
-            table.bank.hand[1].visible = true;
-            response.table = table;
+            let response = manageBlackjack(currentTable.bank.hand);
+            currentTable.bank.hand[1].visible = true;
+            response.table = currentTable;
             // permet d'envoyer à tout le monde la liste des cartes de la banque avec toutes les cartes retournées
             io.in(data.roomId).emit(socketKeys.BankShowCard, response);
             // on copie la main de la bank dans une nouvelle liste
-            let cardsDraw = table.bank.hand.slice();
+            let cardsDraw = currentTable.bank.hand.slice();
             if (response.point < 17) {
                 // on fait tirer la bank tant que son nombre de quoi n'est pas supérieur ou égal à 17
                 while (response.point < 17) {
-                    cardsDraw.push(drawCard(table.deck.draw(1)));
+                    cardsDraw.push(drawCard(currentTable.deck.draw(1)));
+                    response = manageBlackjack(cardsDraw);
                 }
-                response = manageBlackjack(cardsDraw);
                 // on boucle sur la liste qu'on à créer pour envoyer à tout le monde une carte à la fois
                 for (let i = 2; i < cardsDraw.length; i++) {
                     setTimeout(()=>{
                         response.cardDraw = cardsDraw[i];
-                        table.bank.hand.push(cardsDraw[i]);
-                        response.table = table;
+                        currentTable.bank.hand.push(cardsDraw[i]);
+                        response.table = currentTable;
                         io.in(data.roomId).emit(socketKeys.BankDrawCard, response);
                         if (i === cardsDraw.length - 1){
-                            table = table.status = 'F';
+                            currentTable.status = 'F';
                         }
                     }, i * 1000);
                 }
