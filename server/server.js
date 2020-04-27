@@ -137,7 +137,7 @@ io.on(socketKeys.Connection, (socket) => {
             setTimeout(() => {
                 const response = manageBlackjack(table.users.find(u => u.id === user.id).hand, user.id);
                 response.table = listServer.get(data.roomId);
-                io.in(data.roomId).emit(socketKeys.TurnPlayer, response);
+                io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
             }, 3000);
         } else {
             io.to(socket.id).emit(socketKeys.Error);
@@ -162,8 +162,11 @@ io.on(socketKeys.Connection, (socket) => {
         }
     });
 
-    socket.on(socketKeys.EndTurn, (data) => {
-        if (listServer.get(data.roomId).users.findIndex(u => u.id === data.userId) === (listServer.get(data.roomId).users.length - 1)) {
+
+
+    socket.on(socketKeys.PlayerEnd, (data) => {
+        var currentTable = listServer.get(data.roomId);
+        if (currentTable.users.findIndex(u => u.id === data.userId) === (currentTable.users.length - 1)) {
             let table = listServer.get(data.roomId);
             let response = manageBlackjack(table.bank.hand);
             table.bank.hand[1].visible = true;
@@ -193,11 +196,14 @@ io.on(socketKeys.Connection, (socket) => {
             } else {
                 // TODO Fin partie
             }
+
         } else {
-            // Alex
-            const response = manageBlackjack(table.users.find(u => u.id === user.id).hand, user.id);
+            const nextPlayerIndex = currentTable.users.findIndex(u => u.id === user.id) + 1;
+            const nextPlayer = currentTable.users[nextPlayerIndex];
+            console.log(nextPlayer);
+            const response = manageBlackjack(nextPlayer.hand, nextPlayer.id);
             response.table = listServer.get(data.roomId);
-            io.in(data.roomId).emit(socketKeys.TurnPlayer, response);
+            io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
         }
     });
 
@@ -281,7 +287,7 @@ const manageBlackjack = (listCards, userId) => {
     response.isWin= isWin;
     response.isBlackJack= isBlackJack;
     response.isShowDoubleButton = (listCards.length < 3);
-    response.isShowDrawButton = (point < 21);
+    response.isShownDrawButton = (point < 21);
 
     return response;
 };

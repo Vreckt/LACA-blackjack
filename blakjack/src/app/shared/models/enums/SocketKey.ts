@@ -10,11 +10,9 @@ export enum SocketKey {
     // Player Action
     PlayerJoin = 'p-join',
     PlayerLeave = 'p-leave',
-
-    TurnPlayer = 't-player',
-
+    PlayerTurn = 'p-turn',
+    PlayerEnd = 'p-end',
     PlayerKick = 'p-kick',
-
 
     // Status
     Connected = 'connected',

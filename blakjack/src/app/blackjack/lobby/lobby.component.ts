@@ -16,7 +16,8 @@ export class LobbyComponent implements OnInit {
   table = null;
   player = null;
   isAdmin = false;
-  enableActionBtn = false;
+  enableDrawBtn = false;
+  enableEndTurn = false;
   showTable = false;
   private socket: any = null;
 
@@ -55,15 +56,15 @@ export class LobbyComponent implements OnInit {
 
   private manageUI(data) {
     this.table = JSON.parse(JSON.stringify(data.table));
-    this.showTable = this.table.status === 'S' ? true : false;
+    this.showTable = this.table.status === 'S';
     const playerIndex = this.table.users.findIndex(user =>
       user.id === this.socketBlackJackService.getConnectionId() && user.name === localStorage.getItem('username')
     );
     console.log(playerIndex);
     this.player = this.table.users.splice(playerIndex, 1)[0];
-
-
-    this.enableActionBtn = !(this.player.id === data.table.currentPlayer);
+    const isMyTurn = this.player.id === data.userId;
+    this.enableDrawBtn = data.isShownDrawButton && isMyTurn;
+    this.enableEndTurn = isMyTurn;
 
     if (this.table.id.includes(this.socketBlackJackService.getConnectionId())) {
       this.isAdmin = true;
@@ -96,7 +97,7 @@ export class LobbyComponent implements OnInit {
   }
 
   endRound() {
-    this.socket.emit('EndTurn', {
+    this.socket.emit(SocketKey.PlayerEnd, {
       roomId: this.tableId,
       userId: this.player.id
     });
@@ -111,6 +112,7 @@ export class LobbyComponent implements OnInit {
   showRoundPlayer(user: string) {
     this.snackBar.open('A ' + user + ' de jouer !', null, {
       duration: 1500,
+      verticalPosition: 'top'
     });
   }
 
@@ -136,15 +138,18 @@ export class LobbyComponent implements OnInit {
       }
     });
 
-    this.socket.on('bankShowCard', data => {
+
+    this.socket.on(SocketKey.BankShowCard, data => {
       this.table.bank = data.table.bank;
     });
 
-    this.socket.on('bankDrawCard', data => {
+    this.socket.on(SocketKey.BankDrawCard, data => {
       this.table.bank = data.table.bank;
     });
 
-    this.socket.on(SocketKey.TurnPlayer, data => {
+
+    this.socket.on(SocketKey.PlayerTurn, data => {
+
       console.log(data);
       this.manageUI(data);
       const tmpuser = data.table.users.find(u => u.id === data.userId);
@@ -154,9 +159,6 @@ export class LobbyComponent implements OnInit {
 
     this.socket.on(SocketKey.StartGame, data => {
       console.log(data);
-      this.showTable = true;
-      this.player = data.table.users.find(p => p.id === this.player.id);
-      this.enableActionBtn = !(this.player.id === data.currentPlayer);
       this.manageUI(data);
     });
 
@@ -165,7 +167,9 @@ export class LobbyComponent implements OnInit {
       this.manageUI(data);
     });
 
-     this.socket.on(SocketKey.PlayerKick, data => {
+
+    this.socket.on(SocketKey.PlayerKick, data => {
+
       console.log(data.kickPlayer);
       if (this.player.id === data.kickPlayer.id) {
         this.onLeaveTable();
@@ -173,7 +177,6 @@ export class LobbyComponent implements OnInit {
       } else {
         alert('Le joueur ' + data.kickPlayer.name + ' a été expulsé du lobby par l\'admin');
       }
-
     });
   }
 }

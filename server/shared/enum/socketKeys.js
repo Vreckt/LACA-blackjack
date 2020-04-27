@@ -10,10 +10,8 @@ const socketKeys = {
     // Player Action
     PlayerJoin: 'p-join',
     PlayerLeave: 'p-leave',
-
-    TurnPlayer: 't-player',
-
-
+    PlayerTurn: 'p-turn',
+    PlayerEnd: 'p-end',
     PlayerKick: 'p-kick',
 
     // Status
@@ -22,9 +20,8 @@ const socketKeys = {
     //Game
     StartGame: 's-game',
     DrawCard: 'd-card',
-    EndTurn: 'EndTurn',
-    BankShowCard: 'bankShowCard',
-    BankDrawCard: 'bankDrawCard',
+    BankShowCard: 'b-showCard',
+    BankDrawCard: 'b-drawCard',
 
     // Simple Action
     Connection: 'connection',

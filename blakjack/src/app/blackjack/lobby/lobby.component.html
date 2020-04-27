@@ -46,10 +46,12 @@
           </div>
 
           <div class="player-action-area" fxLayout="row">
-            <button (click)="drawCard()" [disabled]="enableActionBtn">Piocher</button>
+            <button (click)="drawCard()" [disabled]="!enableDrawBtn">Piocher</button>
             <!-- <button [disabled]="enableActionBtn">Doubler</button> -->
-            <button (click)="endRound()" [disabled]="enableActionBtn">Fin de tour</button>
-            <button (click)="onLeaveTable()" [disabled]="enableActionBtn">Quitter</button>
+
+            <button  (click)="endRound()" [disabled]="!enableEndTurn" >Fin de tour</button>
+            <button (click)="onLeaveTable()">Quitter</button>
+
 
           </div>
         </div>
