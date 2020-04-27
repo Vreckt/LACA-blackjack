@@ -33,10 +33,10 @@
           </div>
 
           <div class="player-action-area" fxLayout="row">
-            <button (click)="drawCard()" [disabled]="enableActionBtn">Piocher</button>
+            <button (click)="drawCard()" [disabled]="!enableDrawBtn">Piocher</button>
             <!-- <button [disabled]="enableActionBtn">Doubler</button> -->
-            <button [disabled]="enableActionBtn">Fin de tour</button>
-            <button (click)="onLeaveTable()" [disabled]="enableActionBtn">Quitter</button>
+            <button [disabled]="!enableEndTurn" (click)="endRound()" >Fin de tour</button>
+            <button (click)="onLeaveTable()">Quitter</button>
 
           </div>
         </div>
