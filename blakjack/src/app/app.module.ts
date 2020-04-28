@@ -15,6 +15,7 @@ import {MatInputModule} from '@angular/material/input';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
+import { ConnectionComponent } from './connection/connection.component';
 
 const materials = [
   MatListModule,
@@ -30,7 +31,8 @@ const materials = [
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    ConnectionComponent
   ],
   imports: [
     BrowserModule,

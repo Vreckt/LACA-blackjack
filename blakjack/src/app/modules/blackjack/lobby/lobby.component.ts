@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack.service';
-import { SocketKey } from '../../shared/models/enums/SocketKey';
+import { SocketKey } from '../../../shared/models/enums/SocketKey';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -33,7 +33,7 @@ export class LobbyComponent implements OnInit {
     }
 
   ngOnInit() {
-    this.socket = this.socketBlackJackService.socket ? this.socketBlackJackService.socket : '';
+    this.socket = this.socketBlackJackService.socket;
     if (this.socket) {
       this.aftersocketInit();
     } else {
@@ -46,9 +46,17 @@ export class LobbyComponent implements OnInit {
   aftersocketInit() {
     if (this.socket) {
       this.setupSocketConnection();
-      this.socket.emit(SocketKey.JoinTable, {
-        roomId: this.tableId
-      });
+      if (!localStorage.getItem('username')) {
+        const pseudo = prompt('Pseudo');
+        localStorage.setItem('username', pseudo);
+        this.socket.emit(SocketKey.JoinTable, {
+          roomId: this.tableId
+        });
+      } else {
+        this.socket.emit(SocketKey.JoinTable, {
+          roomId: this.tableId
+        });
+      }
     } else {
       this.router.navigate(['../'], { relativeTo: this.route });
     }

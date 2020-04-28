@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SocketKey } from '../../shared/models/enums/SocketKey';
+import { SocketKey } from '../../../shared/models/enums/SocketKey';
 
 @Component({
   selector: 'app-blackjack',

@@ -1,8 +1,10 @@
+const bj = require('./modules/blackjack/blackjack');
+const error = require('./modules/error/error');
 const Table = require('./shared/models/table'),
     Player = require('./shared/models/player'),
     socketKeys = require('./shared/enum/socketKeys'),
-    { decks } = require('./cards'),
-    ResponseBJAction = require('./shared/models/response/responseBlackJack');
+    { decks } = require('./cards');
+    
 var express = require('express'),
     app = express(),
     server = require('http').createServer(app),
@@ -46,41 +48,38 @@ io.on(socketKeys.Connection, (socket) => {
     });
 
     socket.on(socketKeys.NewLobby, data => {
-        console.log(data);
         const roomId = createRoomId(32) + user.id;
         if (!listServer.has(roomId)) {
-            const usr = listPlayers.find(u => u.id === user.id);
+            // const usr = listPlayers.find(u => u.id === user.id);
             let table = new Table(roomId, data.roomName, 1);
-            table.users.push(usr);
+            table.users.push(user);
             listServer.set(roomId, table);
             io.to(socket.id).emit(socketKeys.NewLobby, { roomId: roomId, roomName: data.roomName});
             socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
         } else {
             // Error
-            io.to(socket.id).emit(socketKeys.NewLobby, { roomid: null, roomName: data.roomName });
+            io.to(socket.id).emit('Error', errorMessage(2));
         }
     });
 
     socket.on(socketKeys.JoinTable, (data) => {
         if (listServer.has(data.roomId)) {
-            const usr = listPlayers.find(u => u.id === user.id);
-            if (!listServer.get(data.roomId).users.find(u => u.id === usr.id)){
-                listServer.get(data.roomId).users.push(usr);
+            // const usr = listPlayers.find(u => u.id === user.id);
+            if (!listServer.get(data.roomId).users.find(u => u.id === user.id)){
+                listServer.get(data.roomId).users.push(user);
                 socket.to(data.roomId).emit(socketKeys.PlayerJoin, {
                     table: listServer.get(data.roomId),
                     status: 'success'
                 });
             }
             socket.join(data.roomId);
-            console.log(listServer.get(data.roomId));
             io.to(socket.id).emit(socketKeys.JoinTable, {
                 table: listServer.get(data.roomId),
                 status: 'success'
             });
         } else {
             // Error
-            console.log('Error');
-            io.to(socket.id).emit(socketKeys.JoinTable, { table: null, status: 'error'});
+            io.to(socket.id).emit('Error', { message: errorMessage(1)});
         }
     });
 
@@ -122,12 +121,12 @@ io.on(socketKeys.Connection, (socket) => {
             let i = 0;
             while (i < 2) {
                 for (const player of table.users) {
-                    player.hand.push(drawCard(table.deck.draw(1)));
+                    player.hand.push(bj.drawCard(table.deck.draw(1)));
                 }
                 i++;
             }
-            table.bank.hand.push(drawCard(table.deck.draw(1)));
-            table.bank.hand.push(drawCard(table.deck.draw(1)));
+            table.bank.hand.push(bj.drawCard(table.deck.draw(1)));
+            table.bank.hand.push(bj.drawCard(table.deck.draw(1)));
             table.bank.hand[1].visible = false;
             listServer.set(data.roomId, table);
             // send in room including sender
@@ -135,7 +134,7 @@ io.on(socketKeys.Connection, (socket) => {
                 table: listServer.get(data.roomId)
             });
             setTimeout(() => {
-                const response = manageBlackjack(table.users.find(u => u.id === user.id).hand, user.id);
+                const response = bj.manageBlackjack(table.users.find(u => u.id === user.id).hand, user.id);
                 response.table = listServer.get(data.roomId);
                 io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
             }, 3000);
@@ -150,9 +149,9 @@ io.on(socketKeys.Connection, (socket) => {
             table = listServer.get(data.roomId);
             const playerIndex = table.users.findIndex(u => u.id === data.userId);
             if (table.users[playerIndex]) {
-                const card = drawCard(table.deck.draw(1));
+                const card = bj.drawCard(table.deck.draw(1));
                 table.users[playerIndex].hand.push(card);
-                const response = manageBlackjack(table.users[playerIndex].hand, user.id);
+                const response = bj.manageBlackjack(table.users[playerIndex].hand, user.id);
                 response.cardDraw = card;
                 response.table = table;
                 listServer.set(data.roomId, table);
@@ -162,12 +161,10 @@ io.on(socketKeys.Connection, (socket) => {
         }
     });
 
-
-
     socket.on(socketKeys.PlayerEnd, (data) => {
         var currentTable = listServer.get(data.roomId);
         if (currentTable.users.findIndex(u => u.id === data.userId) === (currentTable.users.length - 1)) {
-            let response = manageBlackjack(currentTable.bank.hand);
+            let response = bj.manageBlackjack(currentTable.bank.hand);
             currentTable.bank.hand[1].visible = true;
             response.table = currentTable;
             // permet d'envoyer à tout le monde la liste des cartes de la banque avec toutes les cartes retournées
@@ -177,8 +174,8 @@ io.on(socketKeys.Connection, (socket) => {
             if (response.point < 17) {
                 // on fait tirer la bank tant que son nombre de quoi n'est pas supérieur ou égal à 17
                 while (response.point < 17) {
-                    cardsDraw.push(drawCard(currentTable.deck.draw(1)));
-                    response = manageBlackjack(cardsDraw);
+                    cardsDraw.push(bj.drawCard(currentTable.deck.draw(1)));
+                    response = bj.manageBlackjack(cardsDraw);
                 }
                 // on boucle sur la liste qu'on à créer pour envoyer à tout le monde une carte à la fois
                 for (let i = 2; i < cardsDraw.length; i++) {
@@ -200,7 +197,7 @@ io.on(socketKeys.Connection, (socket) => {
             const nextPlayerIndex = currentTable.users.findIndex(u => u.id === user.id) + 1;
             const nextPlayer = currentTable.users[nextPlayerIndex];
             console.log(nextPlayer);
-            const response = manageBlackjack(nextPlayer.hand, nextPlayer.id);
+            const response = bj.manageBlackjack(nextPlayer.hand, nextPlayer.id);
             response.table = listServer.get(data.roomId);
             io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
         }
@@ -228,65 +225,4 @@ const createRoomId = (length = 64) => {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
-};
-
-const drawCard = (cardDraw) => {
-// refait un objet carte plus simplifié 
-    const card = {
-        // ex: AS | 10S ...
-        name: cardDraw[0].rank.shortName + cardDraw[0].suit.name,
-        shortName:  cardDraw[0].rank.shortName,
-        visible: true,
-        value: 0
-    };
-    if (['A', 'J', 'Q', 'K'].includes(cardDraw[0].rank.shortName)) {
-        // si c'est un AS
-        if (cardDraw[0].rank.shortName === 'A') {
-            card.value = 11;
-        } else {
-            // si c'est autre chose
-            card.value = 10;
-        }
-    } else {
-        // si oui j'ajoute la valeur dans value
-        card.value = +card.shortName;
-    }
-    return card;
-};
-
-const manageBlackjack = (listCards, userId) => {
-    let point = 0;
-    let isBlackJack = false;
-    let isWin = false;
-    const sortedCardList = listCards.slice().sort((a, b) => { return a.value - b.value });
-    for (const card of sortedCardList) {
-        if (card.shortName != 'A') {
-            point += card.value;
-        } else {
-            if (point > 10) {
-                ++point;
-            } else if (point < 10 || point == 10) {
-                point += 11;
-            }
-        }
-        if (point > 21) {
-            isWin = false;
-        } else if (point === 21) {
-            isWin = true;
-            isBlackJack = true;
-        } else {
-            isWin = true;
-        }
-    }
-
-    const response = new ResponseBJAction();
-    
-    response.userId = userId;
-    response.point= point;
-    response.isWin= isWin;
-    response.isBlackJack= isBlackJack;
-    response.isShowDoubleButton = (listCards.length < 3);
-    response.isShownDrawButton = (point < 21);
-
-    return response;
 };
