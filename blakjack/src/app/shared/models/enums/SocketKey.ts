@@ -14,13 +14,14 @@ export enum SocketKey {
     PlayerEnd = 'p-end',
     PlayerKick = 'p-kick',
 
-
     // Status
     Connected = 'connected',
 
     // Game
     StartGame = 's-game',
     DrawCard = 'd-card',
+    BankShowCard = 'b-showCard',
+    BankDrawCard = 'b-drawCard',
 
     // Simple Action
     Connection = 'connection',

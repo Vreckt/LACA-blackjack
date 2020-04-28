@@ -138,7 +138,18 @@ export class LobbyComponent implements OnInit {
       }
     });
 
+
+    this.socket.on(SocketKey.BankShowCard, data => {
+      this.table.bank = data.table.bank;
+    });
+
+    this.socket.on(SocketKey.BankDrawCard, data => {
+      this.table.bank = data.table.bank;
+    });
+
+
     this.socket.on(SocketKey.PlayerTurn, data => {
+
       console.log(data);
       this.manageUI(data);
       const tmpuser = data.table.users.find(u => u.id === data.userId);
@@ -156,7 +167,9 @@ export class LobbyComponent implements OnInit {
       this.manageUI(data);
     });
 
+
     this.socket.on(SocketKey.PlayerKick, data => {
+
       console.log(data.kickPlayer);
       if (this.player.id === data.kickPlayer.id) {
         this.onLeaveTable();
