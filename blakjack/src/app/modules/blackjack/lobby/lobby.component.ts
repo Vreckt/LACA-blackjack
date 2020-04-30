@@ -39,7 +39,12 @@ export class LobbyComponent implements OnInit {
     } else {
       this.socketBlackJackService.connectToSocket();
       this.socket = this.socketBlackJackService.socket;
-      this.aftersocketInit();
+      if (!localStorage.getItem('username') || !this.socket) {
+        sessionStorage.setItem('inviteTo', 'blackjack/' + this.tableId);
+        this.router.navigate(['./connection']);
+      } else {
+        this.aftersocketInit();
+      }
     }
   }
 
