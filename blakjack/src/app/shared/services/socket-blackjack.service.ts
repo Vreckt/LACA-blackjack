@@ -29,7 +29,8 @@ export class SocketBlackJackService {
   }
 
   keepConnectionId(connId: string) {
-    if (!this.getConnectionId()) {
+    if (this.getConnectionId() !== connId) {
+      console.log(connId);
       localStorage.setItem('connId', connId);
     }
   }
