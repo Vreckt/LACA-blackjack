@@ -3,4 +3,5 @@ export class User {
     id: string;
     name: string;
     credits: number;
+    currentBet: number;
 }

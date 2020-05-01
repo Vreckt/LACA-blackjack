@@ -13,6 +13,7 @@ const socketKeys = {
     PlayerTurn: 'p-turn',
     PlayerEnd: 'p-end',
     PlayerKick: 'p-kick',
+    PlayerBet: 'p-bet',
 
     // Status
     Connected: 'connected',

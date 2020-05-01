@@ -19,6 +19,8 @@ export class LobbyComponent implements OnInit {
   enableDrawBtn = false;
   enableEndTurn = false;
   showTable = false;
+  showBet = false;
+  canBetButton = true;
   private socket: any = null;
 
   constructor(
@@ -69,7 +71,7 @@ export class LobbyComponent implements OnInit {
 
   private manageUI(data) {
     this.table = JSON.parse(JSON.stringify(data.table));
-    this.showTable = this.table.status === 'S';
+    this.showTable = this.table.status === 'S' || this.table.status === 'B';
     const playerIndex = this.table.users.findIndex(user =>
       user.id === this.socketBlackJackService.getConnectionId() && user.name === localStorage.getItem('username')
     );
@@ -78,6 +80,8 @@ export class LobbyComponent implements OnInit {
     const isMyTurn = this.player.id === data.userId;
     this.enableDrawBtn = data.isShownDrawButton && isMyTurn;
     this.enableEndTurn = isMyTurn;
+    console.log(this.player);
+    this.showBet = this.table.status === 'B' && this.player.currentBet === 0;
 
     if (this.table.id.includes(this.socketBlackJackService.getConnectionId())) {
       this.isAdmin = true;
@@ -105,6 +109,20 @@ export class LobbyComponent implements OnInit {
     }));
   }
 
+  // Bet
+
+  sendBet(betMoney: number) {
+    if (this.canBetButton) {
+      this.canBetButton = false;
+      console.log(betMoney);
+      this.socket.emit(SocketKey.PlayerBet, {
+        roomId: this.tableId,
+        userId: this.player.id,
+        betMoney
+      });
+    }
+  }
+
   doubleCredits() {
 
   }
@@ -124,6 +142,13 @@ export class LobbyComponent implements OnInit {
 
   showRoundPlayer(user: string) {
     this.snackBar.open('A ' + user + ' de jouer !', null, {
+      duration: 1500,
+      verticalPosition: 'top'
+    });
+  }
+
+  showBetPlayer(user: string, betMoney: string) {
+    this.snackBar.open(user + ' a misé ' + betMoney + '€', null, {
       duration: 1500,
       verticalPosition: 'top'
     });
@@ -160,6 +185,16 @@ export class LobbyComponent implements OnInit {
       this.table.bank = data.table.bank;
     });
 
+    this.socket.on(SocketKey.PlayerBet, data => {
+      console.log(data);
+      this.manageUI(data);
+      const tmpUser = data.table.users.find(u => u.id === data.userId);
+      console.log(tmpUser);
+      console.log(data.userId);
+      if (tmpUser) {
+        this.showBetPlayer(tmpUser.name, tmpUser.currentBet);
+      }
+    });
 
     this.socket.on(SocketKey.PlayerTurn, data => {
 
@@ -179,7 +214,6 @@ export class LobbyComponent implements OnInit {
       console.log(data);
       this.manageUI(data);
     });
-
 
     this.socket.on(SocketKey.PlayerKick, data => {
 

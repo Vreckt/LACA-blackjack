@@ -53,3 +53,11 @@ exports.manageBlackjack = (listCards, userId) => {
 
     return response;
 };
+
+exports.manageBet = (table, playerId) => {
+    const response = new ResponseBJAction();
+    response.table = table;
+    console.log(table);
+    response.userId = playerId;
+    return response;
+}

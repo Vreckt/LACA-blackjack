@@ -15,17 +15,27 @@ class Table {
     }
 
     getUser() {
-        return this.users.slice();
+       return this.users.slice();
     }
     
+    betTable() {
+      this.status = 'B';
+    }
+
     startedTable() {
-        this.status = 'S';
+      this.status = 'S';
     }
 
     finishedTable() {
-        this.status = 'F';
+      this.status = 'F';
     }
-  
+
+    isPlayersAllBet() {
+      for(const user of this.users) {
+        if (user.currentBet == 0) { return false }
+      }
+      return true
+    }
 }
 
 module.exports = Table;
