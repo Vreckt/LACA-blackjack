@@ -16,8 +16,6 @@ export class BlackjackComponent implements OnInit {
 
   formNewTable: FormGroup;
 
-  private socket: any = null;
-
   listTables = [];
   constructor(
     private socketService: SocketBlackJackService,
@@ -27,18 +25,21 @@ export class BlackjackComponent implements OnInit {
 
   ngOnInit() {
     this.username = localStorage.getItem('username');
+    if (!this.socketService.socket) {
+      this.socketService.connectToSocket();
+    }
     if (this.username) {
-      this.initConnectionServer();
+      this.setupSocketConnection();
+    } else {
+      this.router.navigate(['../connection'], { relativeTo: this.route });
     }
     this.formNewTable = new FormGroup({
       roomName: new FormControl('', Validators.required)
     });
-  }
-
-  private initConnectionServer() {
-    this.socketService.connectToSocket();
-    this.socket = this.socketService.socket;
-    this.setupSocketConnection();
+    console.log(this.socketService.listServers);
+    setTimeout(() => {
+      this.listTables = this.socketService.listServers;
+    }, 100);
   }
 
   onCreateRoom() {
@@ -47,29 +48,22 @@ export class BlackjackComponent implements OnInit {
     });
   }
 
-  createUsername(username: string) {
-    localStorage.setItem('username', username);
-    this.username = username;
-    this.initConnectionServer();
-  }
-
   joinTable(table) {
     this.router.navigate([table.id], { relativeTo: this.route });
   }
 
-
   private setupSocketConnection() {
-    this.socket.on(SocketKey.Connected, data => {
+    this.socketService.socket.on(SocketKey.Connected, data => {
       this.socketService.keepConnectionId(data.id);
       this.socketService.listServers = data.servers;
       this.listTables = data.servers;
     });
 
-    this.socket.on(SocketKey.NewLobby, data => {
+    this.socketService.socket.on(SocketKey.NewLobby, data => {
       this.router.navigate([data.roomId], { relativeTo: this.route });
     });
 
-    this.socket.on(SocketKey.UpdateLobby, data => {
+    this.socketService.socket.on(SocketKey.UpdateLobby, data => {
       this.socketService.listServers = data.servers;
       this.listTables = data.servers;
     });

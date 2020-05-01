@@ -44,14 +44,3 @@
     </div>
 </div>
 
-<div class="onboarding" fxLayout="column" fxLayoutAlign="center center" *ngIf="!username">
-  <div class="onboarding-username-div" fxLayout="column" fxLayoutAlign="center center">
-    <form class="example-form">
-      <mat-form-field class="example-full-width">
-        <mat-label>Pseudo</mat-label>
-        <input #username matInput placeholder="Ex. John Doe" autocomplete='off'(keyUp.enter)="createUsername($event.target.value)">
-      </mat-form-field>
-    </form>
-    <button mat-raised-button color="primary" (click)="createUsername(username.value)">Valider mon pseudo</button>
-  </div>
-</div>

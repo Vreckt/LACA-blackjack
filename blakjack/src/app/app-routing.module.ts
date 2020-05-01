@@ -14,7 +14,7 @@ const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'blackjack',
+    redirectTo: 'connection',
     pathMatch: 'full'
   }
 ];
