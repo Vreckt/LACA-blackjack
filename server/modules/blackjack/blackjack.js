@@ -61,3 +61,56 @@ exports.manageBet = (table, playerId) => {
     response.userId = playerId;
     return response;
 }
+
+exports.manageEndGame = (table) => {
+    let bank = table.bank;
+    var listOfResponse = [];
+    console.log(bank);
+    // Check if users win
+    for(const user of table.users) {
+        let tmpResponse = this.manageBlackjack(user.hand, user.id);
+        if (tmpResponse.isWin) {
+            listOfResponse.push(tmpResponse);
+        }
+    }
+
+    if (bank.isWin) {
+        console.log('isWin');
+        for (const response of listOfResponse) {
+            console.log('listOfResponse');
+            console.log(response);
+
+            if (response.point > bank.point) {
+                console.log('gagné a plat de couture');
+
+                table.users.find(u => u.id === response.userId).credits += table.users.find(u => u.id === response.userId).currentBet * (response.isBlackJack ? 2.5 : 2);
+            } else if (response.point == bank.point) {
+                console.log('égalité');
+
+                if (response.isBlackJack !== bank.isBlackJack) {
+                    if (response.isBlackJack) {
+                        console.log('2.5');
+                        table.users.find(u => u.id === response.userId).credits += table.users.find(u => u.id === response.userId).currentBet * 2.5;
+                    }
+                } else {
+                    if (firstPlayer.isBlackJack) {
+                        console.log('only bet');
+
+                        table.users.find(u => u.id === response.userId).credits += table.users.find(u => u.id === response.userId).currentBet;
+                    }
+                }
+            }
+        }
+    } else {
+        for (const response of listOfResponse) {
+            console.log('dealer has been defeated');
+
+            table.users.find(u => u.id === response.userId).credits += table.users.find(u => u.id === response.userId).currentBet * (response.isBlackJack ? 2.5 : 2);
+        }
+    }
+    
+    table.status = 'F';
+    console.log(table);
+
+    return table;
+}

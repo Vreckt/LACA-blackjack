@@ -3,6 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack.service';
 import { SocketKey } from '../../../shared/models/enums/SocketKey';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DialogRetryComponent } from './dialogRetry/dialog.retry.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-lobby',
@@ -20,14 +22,15 @@ export class LobbyComponent implements OnInit {
   enableEndTurn = false;
   showTable = false;
   showBet = false;
-  canBetButton = true;
+  canBetButton = false;
   private socket: any = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private socketBlackJackService: SocketBlackJackService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
     ) {
       this.route.paramMap.subscribe(params => {
         this.tableId = params.get('id');
@@ -71,7 +74,7 @@ export class LobbyComponent implements OnInit {
 
   private manageUI(data) {
     this.table = JSON.parse(JSON.stringify(data.table));
-    this.showTable = this.table.status === 'S' || this.table.status === 'B';
+    this.showTable = this.table.status === 'S' || this.table.status === 'B' || this.table.status === 'F';
     const playerIndex = this.table.users.findIndex(user =>
       user.id === this.socketBlackJackService.getConnectionId() && user.name === localStorage.getItem('username')
     );
@@ -82,6 +85,7 @@ export class LobbyComponent implements OnInit {
     this.enableEndTurn = isMyTurn;
     console.log(this.player);
     this.showBet = this.table.status === 'B' && this.player.currentBet === 0;
+    this.canBetButton = this.showBet;
 
     if (this.table.id.includes(this.socketBlackJackService.getConnectionId())) {
       this.isAdmin = true;
@@ -154,6 +158,18 @@ export class LobbyComponent implements OnInit {
     });
   }
 
+  // Dialog
+  private showRetry() {
+    const dialogRef = this.dialog.open(DialogRetryComponent, {
+      width: '250px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The dialog was closed');
+      this.onStartGame();
+    });
+  }
+
   private setupSocketConnection() {
     this.socket.on(SocketKey.JoinTable, data => {
       console.log(data);
@@ -213,6 +229,14 @@ export class LobbyComponent implements OnInit {
     this.socket.on(SocketKey.DrawCard, data => {
       console.log(data);
       this.manageUI(data);
+    });
+
+    this.socket.on(SocketKey.FinishGame, data => {
+      console.log(data);
+      this.manageUI(data);
+      if (this.isAdmin) {
+        this.showRetry();
+      }
     });
 
     this.socket.on(SocketKey.PlayerKick, data => {

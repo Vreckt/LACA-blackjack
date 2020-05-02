@@ -23,6 +23,7 @@ export enum SocketKey {
     DrawCard = 'd-card',
     BankShowCard = 'b-showCard',
     BankDrawCard = 'b-drawCard',
+    FinishGame = 'f-game',
 
     // Simple Action
     Connection = 'connection',

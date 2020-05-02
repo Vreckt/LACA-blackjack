@@ -112,9 +112,7 @@ io.on(socketKeys.Connection, (socket) => {
         if (listServer.has(data.roomId)) {
             let table = new Table();
             table = listServer.get(data.roomId);
-            for (const player of table.users) {
-                player.clean();
-            }
+            table.clean();
 
             table.startedTable()
             listServer.set(data.roomId, table);
@@ -164,11 +162,13 @@ io.on(socketKeys.Connection, (socket) => {
                   table.bank.hand[1].visible = false;
                   listServer.set(data.roomId, table);
 
-                  const response = bj.manageBlackjack(table.users.find(u => u.id === user.id).hand, user.id);
+                  const response = bj.manageBlackjack(table.users[0].hand, table.users[0].id);
                   response.table = listServer.get(data.roomId);
                   io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
               }, 1000);
           }
+        } else {
+            console.log('Le joueur est ruiné');
         }
     })
 
@@ -195,6 +195,9 @@ io.on(socketKeys.Connection, (socket) => {
         if (currentTable.users.findIndex(u => u.id === data.userId) === (currentTable.users.length - 1)) {
             let response = bj.manageBlackjack(currentTable.bank.hand);
             currentTable.bank.hand[1].visible = true;
+            currentTable.bank.point = response.point;
+            currentTable.bank.isBlackjack = response.isBlackJack;
+            currentTable.bank.isWin = response.isWin;
             response.table = currentTable;
             // permet d'envoyer à tout le monde la liste des cartes de la banque avec toutes les cartes retournées
             io.in(data.roomId).emit(socketKeys.BankShowCard, response);
@@ -209,18 +212,23 @@ io.on(socketKeys.Connection, (socket) => {
                 // on boucle sur la liste qu'on à créer pour envoyer à tout le monde une carte à la fois
                 for (let i = 2; i < cardsDraw.length; i++) {
                     setTimeout(()=>{
-                        response.cardDraw = cardsDraw[i];
                         currentTable.bank.hand.push(cardsDraw[i]);
+                        response = bj.manageBlackjack(currentTable.bank.hand);
+                        currentTable.bank.point = response.point;
+                        currentTable.bank.isBlackjack = response.isBlackJack;
+                        currentTable.bank.isWin = response.isWin;
                         response.table = currentTable;
+                        response.cardDraw = cardsDraw[i];
                         io.in(data.roomId).emit(socketKeys.BankDrawCard, response);
                         if (i === cardsDraw.length - 1){
-                            currentTable.status = 'F';
+                            response.table = bj.manageEndGame(response.table);
+                            io.in(data.roomId).emit(socketKeys.FinishGame, response);
                         }
                     }, i * 1000);
                 }
-                // TODO Fin partie
             } else {
-                // TODO Fin partie
+                response.table = bj.manageEndGame(response.table);
+                io.in(data.roomId).emit(socketKeys.FinishGame, response);
             }
 
         } else {

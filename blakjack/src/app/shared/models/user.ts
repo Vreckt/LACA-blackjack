@@ -4,4 +4,5 @@ export class User {
     name: string;
     credits: number;
     currentBet: number;
+    score: number;
 }
