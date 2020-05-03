@@ -8,12 +8,14 @@ class Player {
       this.currentBet = 0;
       this.hand = [];
       this.score = 0;
+      this.hasDouble = false;
     }
 
     clean() {
       this.currentBet = 0;
       this.hand = [];
       this.score = 0;
+      this.hasDouble = false;
     }
   
 }

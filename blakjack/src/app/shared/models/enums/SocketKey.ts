@@ -14,6 +14,7 @@ export enum SocketKey {
     PlayerEnd = 'p-end',
     PlayerKick = 'p-kick',
     PlayerBet = 'p-bet',
+    PlayerDouble = 'p-double',
 
     // Status
     Connected = 'connected',

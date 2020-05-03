@@ -5,4 +5,5 @@ export class User {
     credits: number;
     currentBet: number;
     score: number;
+    hasDouble: boolean;
 }

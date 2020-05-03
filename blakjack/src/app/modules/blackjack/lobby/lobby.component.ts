@@ -20,6 +20,7 @@ export class LobbyComponent implements OnInit {
   isAdmin = false;
   enableDrawBtn = false;
   enableEndTurn = false;
+  enableDoubleBtn = false;
   showTable = false;
   showBet = false;
   canBetButton = false;
@@ -82,8 +83,9 @@ export class LobbyComponent implements OnInit {
     this.player = this.table.users.splice(playerIndex, 1)[0];
     const isMyTurn = this.player.id === data.userId;
     this.enableDrawBtn = data.isShownDrawButton && isMyTurn;
-    this.enableEndTurn = isMyTurn;
-    console.log(this.player);
+    this.enableEndTurn = isMyTurn && this.table.status === 'S';
+    this.enableDoubleBtn = !this.player.hasDouble && isMyTurn && data.isShownDrawButton;
+    console.log(data);
     this.showBet = this.table.status === 'B' && this.player.currentBet === 0;
     this.canBetButton = this.showBet;
 
@@ -127,8 +129,12 @@ export class LobbyComponent implements OnInit {
     }
   }
 
-  doubleCredits() {
-
+  doubleBet() {
+    this.enableDrawBtn = false;
+    this.socket.emit(SocketKey.PlayerDouble, {
+      roomId: this.tableId,
+      userId: this.player.id
+    });
   }
 
   endRound() {

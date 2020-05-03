@@ -6,7 +6,6 @@ class ResponseBJAction {
     isWin = null;
     isBlackJack = false;
     isShownDrawButton = false;
-    isShownDoubleButton = false;
     table = null;
 }
 module.exports = ResponseBJAction;

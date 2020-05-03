@@ -55,7 +55,7 @@
 
           <div class="player-action-area" fxLayout="row">
             <button (click)="drawCard()" [disabled]="!enableDrawBtn">Piocher</button>
-            <button>Doubler</button>
+            <button (click)="doubleBet()" [disabled]="!enableDoubleBtn">Doubler</button>
             <button (click)="endRound()" [disabled]="!enableEndTurn" >Fin de tour</button>
             <button (click)="onLeaveTable()">Quitter</button>
 

@@ -136,9 +136,8 @@ io.on(socketKeys.Connection, (socket) => {
     socket.on(socketKeys.PlayerBet, (data) => {
         var currentPlayerIndex = listServer.get(data.roomId).users.findIndex(p => p.id === data.userId);
         if (data.betMoney > 0 && data.betMoney <= listServer.get(data.roomId).users[currentPlayerIndex].credits) {
+            listServer.get(data.roomId).users[currentPlayerIndex].credits -= data.betMoney;
             listServer.get(data.roomId).users[currentPlayerIndex].currentBet = data.betMoney;
-            let credits = listServer.get(data.roomId).users[currentPlayerIndex].credits;
-            listServer.get(data.roomId).users[currentPlayerIndex].credits = credits - data.betMoney;
             let response = bj.manageBet(listServer.get(data.roomId), listServer.get(data.roomId).users[currentPlayerIndex].id);
 
             io.in(data.roomId).emit(socketKeys.PlayerBet, response);
@@ -169,6 +168,19 @@ io.on(socketKeys.Connection, (socket) => {
           }
         } else {
             console.log('Le joueur est ruiné');
+        }
+    })
+
+    socket.on(socketKeys.PlayerDouble, (data) => {
+        var currentPlayerIndex = listServer.get(data.roomId).users.findIndex(p => p.id === data.userId);
+        var currentPlayer = listServer.get(data.roomId).users[currentPlayerIndex];
+        if (currentPlayer.currentBet * 2 <= currentPlayer.credits) {
+            listServer.get(data.roomId).users[currentPlayerIndex].credits -= currentPlayer.currentBet;
+            listServer.get(data.roomId).users[currentPlayerIndex].currentBet = currentPlayer.currentBet * 2;
+            listServer.get(data.roomId).users[currentPlayerIndex].hasDouble = true;
+            let response = bj.manageBlackjack(listServer.get(data.roomId).users[currentPlayerIndex].hand, listServer.get(data.roomId).users[currentPlayerIndex].id);
+            response.table = listServer.get(data.roomId);
+            io.in(data.roomId).emit(socketKeys.PlayerBet, response);
         }
     })
 
