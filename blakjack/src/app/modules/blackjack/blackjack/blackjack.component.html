@@ -1,6 +1,16 @@
 <mat-toolbar color="primary">
-    <mat-toolbar-row>
-      <span>Black Jack</span>
+    <mat-toolbar-row fxLayoutAlign="space-between center">
+        <span>Black Jack</span>
+        <div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="10px">
+            <div class="s-icon p-{{icon}}"></div>
+            <button mat-button 
+            [matMenuTriggerFor]="menu"
+            fxLayout="row"
+            fxLayoutAlign="center center"><span>{{ username }}</span></button>
+            <mat-menu #menu="matMenu">
+                <button mat-menu-item><mat-icon>exit_to_app</mat-icon> Leave</button>
+            </mat-menu>
+        </div>
     </mat-toolbar-row>
 </mat-toolbar>
 <div class="container" fxLayout="row" *ngIf="username">
@@ -19,7 +29,6 @@
     </div>
     <div class="right-side" fxLayout="column" fxLayoutGap="20px">
         <div class="home-img"></div>
-
         <div class="action_area" fxLayout="column" fxLayoutAlign="center center">
             <div fxLayoutGap="25px">
                 <button mat-flat-button color="primary" (click)="createTable = !createTable">Nouvelle partie</button>
@@ -30,11 +39,8 @@
                     <form [formGroup]="formNewTable" (ngSubmit)="onCreateRoom()">
                         <mat-form-field>
                             <mat-label>Room</mat-label>
-                            <input matInput
-                            placeholder="Room name"
-                            formControlName="roomName"
-                            color="primary"
-                            (keyUp.enter)="onCreateRoom()">
+                            <input matInput placeholder="Room name" formControlName="roomName" color="primary"
+                                (keyUp.enter)="onCreateRoom()">
                         </mat-form-field>
                         <button mat-raised-button color="primary">Créer</button>
                     </form>
@@ -43,4 +49,3 @@
         </div>
     </div>
 </div>
-

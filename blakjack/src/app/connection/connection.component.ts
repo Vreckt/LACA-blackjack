@@ -13,11 +13,15 @@ export class ConnectionComponent implements OnInit {
   username: string;
 
   formNewTable: FormGroup;
+
+  icons = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  selectedIcon = 1;
+
   constructor(
     private socketService: SocketBlackJackService,
     private route: ActivatedRoute,
     private router: Router
-    ) { }
+  ) { }
 
   ngOnInit(): void {
     if (localStorage.getItem('username')) {
@@ -27,6 +31,7 @@ export class ConnectionComponent implements OnInit {
 
   createUsername(username: string): void {
     localStorage.setItem('username', username);
+    localStorage.setItem('iconColor', this.selectedIcon.toString());
     // this.username = username;
     setTimeout(() => {
       this.initConnectionServer();

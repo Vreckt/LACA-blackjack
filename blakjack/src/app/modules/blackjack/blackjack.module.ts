@@ -17,6 +17,7 @@ import { LobbyComponent } from './lobby/lobby.component';
 import { RulesComponent, DialogRulesComponent } from './rules/rules.component';
 import { CommonModule } from '@angular/common';
 import {MatDialogModule} from '@angular/material/dialog';
+import {MatMenuModule} from '@angular/material/menu';
 
 const materials = [
   MatListModule,
@@ -26,7 +27,8 @@ const materials = [
   MatDividerModule,
   MatInputModule,
   FormsModule,
-  MatDialogModule
+  MatDialogModule,
+  MatMenuModule
 ];
 
 @NgModule({

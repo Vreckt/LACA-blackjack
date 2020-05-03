@@ -31,15 +31,11 @@
     border-radius: 5px;
 }
 
-.onboarding {
-  background: #263238;
-  height: calc(100vh - 64px);
-  overflow-x: hidden;
-}
-
-.onboarding-username-div {
-  width:40%;
-  height:20%;
-  background: white;
-  border-radius:10px;
-}
+::ng-deep .mat-radio-button .mat-radio-container {
+    width: 0;
+  }
+  ::ng-deep .mat-radio-container .mat-radio-outer-circle,
+  ::ng-deep .mat-radio-container .mat-radio-inner-circle {
+    border: none;
+    width: 0;
+  }

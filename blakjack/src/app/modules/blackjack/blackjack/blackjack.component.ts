@@ -13,10 +13,10 @@ export class BlackjackComponent implements OnInit {
 
   createTable = false;
   username: string;
-
+  icon = 1;
   formNewTable: FormGroup;
-
   listTables = [];
+
   constructor(
     private socketService: SocketBlackJackService,
     private route: ActivatedRoute,
@@ -25,6 +25,7 @@ export class BlackjackComponent implements OnInit {
 
   ngOnInit() {
     this.username = localStorage.getItem('username');
+    this.icon = +localStorage.getItem('iconColor');
     if (!this.socketService.socket) {
       this.socketService.connectToSocket();
     }
