@@ -4,9 +4,8 @@ class ResponseBJAction {
     cardDraw = null;
     point = null;
     isWin = null;
-    isBlackJack = null;
-    isShownDrawButton = null;
-    isShownDoubleButton = null;
+    isBlackJack = false;
+    isShownDrawButton = false;
     table = null;
 }
 module.exports = ResponseBJAction;

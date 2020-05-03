@@ -13,6 +13,8 @@ export enum SocketKey {
     PlayerTurn = 'p-turn',
     PlayerEnd = 'p-end',
     PlayerKick = 'p-kick',
+    PlayerBet = 'p-bet',
+    PlayerDouble = 'p-double',
 
     // Status
     Connected = 'connected',
@@ -22,6 +24,7 @@ export enum SocketKey {
     DrawCard = 'd-card',
     BankShowCard = 'b-showCard',
     BankDrawCard = 'b-drawCard',
+    FinishGame = 'f-game',
 
     // Simple Action
     Connection = 'connection',

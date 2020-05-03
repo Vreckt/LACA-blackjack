@@ -1,3 +1,5 @@
+const Bank = require('./bank.js');
+
 class Table {
     constructor(id = '', name = '', nbDeck = 1, type = 1) {
       this.id = id;
@@ -6,26 +8,42 @@ class Table {
       this.users = [];
       this.nbDeck = nbDeck,
       this.deck;
-      this.bank = {
-        hand: [],
-        discardCard: []
-      };
+      this.bank = new Bank();
       this.currentPlayer = '';
       this.status = 'P';
     }
 
     getUser() {
-        return this.users.slice();
+       return this.users.slice();
     }
     
+    betTable() {
+      this.status = 'B';
+    }
+
     startedTable() {
-        this.status = 'S';
+      this.status = 'S';
     }
 
     finishedTable() {
-        this.status = 'F';
+      this.status = 'F';
     }
-  
+
+    isPlayersAllBet() {
+      for(const user of this.users) {
+        if (user.currentBet == 0) { return false }
+      }
+      return true
+    }
+
+    clean() {
+      this.bank = new Bank();
+      this.currentPlayer = '';
+
+      for (const player of this.users) {
+        player.clean();
+      }
+    }
 }
 
 module.exports = Table;

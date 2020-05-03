@@ -3,6 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack.service';
 import { SocketKey } from '../../../shared/models/enums/SocketKey';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DialogRetryComponent } from './dialogRetry/dialog.retry.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-lobby',
@@ -18,14 +20,18 @@ export class LobbyComponent implements OnInit {
   isAdmin = false;
   enableDrawBtn = false;
   enableEndTurn = false;
+  enableDoubleBtn = false;
   showTable = false;
+  showBet = false;
+  canBetButton = false;
   private socket: any = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private socketBlackJackService: SocketBlackJackService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
     ) {
       this.route.paramMap.subscribe(params => {
         this.tableId = params.get('id');
@@ -69,7 +75,7 @@ export class LobbyComponent implements OnInit {
 
   private manageUI(data) {
     this.table = JSON.parse(JSON.stringify(data.table));
-    this.showTable = this.table.status === 'S';
+    this.showTable = this.table.status === 'S' || this.table.status === 'B' || this.table.status === 'F';
     const playerIndex = this.table.users.findIndex(user =>
       user.id === this.socketBlackJackService.getConnectionId() && user.name === localStorage.getItem('username')
     );
@@ -77,7 +83,11 @@ export class LobbyComponent implements OnInit {
     this.player = this.table.users.splice(playerIndex, 1)[0];
     const isMyTurn = this.player.id === data.userId;
     this.enableDrawBtn = data.isShownDrawButton && isMyTurn;
-    this.enableEndTurn = isMyTurn;
+    this.enableEndTurn = isMyTurn && this.table.status === 'S';
+    this.enableDoubleBtn = !this.player.hasDouble && isMyTurn && data.isShownDrawButton;
+    console.log(data);
+    this.showBet = this.table.status === 'B' && this.player.currentBet === 0;
+    this.canBetButton = this.showBet;
 
     if (this.table.id.includes(this.socketBlackJackService.getConnectionId())) {
       this.isAdmin = true;
@@ -105,8 +115,26 @@ export class LobbyComponent implements OnInit {
     }));
   }
 
-  doubleCredits() {
+  // Bet
 
+  sendBet(betMoney: number) {
+    if (this.canBetButton) {
+      this.canBetButton = false;
+      console.log(betMoney);
+      this.socket.emit(SocketKey.PlayerBet, {
+        roomId: this.tableId,
+        userId: this.player.id,
+        betMoney
+      });
+    }
+  }
+
+  doubleBet() {
+    this.enableDrawBtn = false;
+    this.socket.emit(SocketKey.PlayerDouble, {
+      roomId: this.tableId,
+      userId: this.player.id
+    });
   }
 
   endRound() {
@@ -126,6 +154,25 @@ export class LobbyComponent implements OnInit {
     this.snackBar.open('A ' + user + ' de jouer !', null, {
       duration: 1500,
       verticalPosition: 'top'
+    });
+  }
+
+  showBetPlayer(user: string, betMoney: string) {
+    this.snackBar.open(user + ' a misé ' + betMoney + '€', null, {
+      duration: 1500,
+      verticalPosition: 'top'
+    });
+  }
+
+  // Dialog
+  private showRetry() {
+    const dialogRef = this.dialog.open(DialogRetryComponent, {
+      width: '250px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The dialog was closed');
+      this.onStartGame();
     });
   }
 
@@ -160,6 +207,16 @@ export class LobbyComponent implements OnInit {
       this.table.bank = data.table.bank;
     });
 
+    this.socket.on(SocketKey.PlayerBet, data => {
+      console.log(data);
+      this.manageUI(data);
+      const tmpUser = data.table.users.find(u => u.id === data.userId);
+      console.log(tmpUser);
+      console.log(data.userId);
+      if (tmpUser) {
+        this.showBetPlayer(tmpUser.name, tmpUser.currentBet);
+      }
+    });
 
     this.socket.on(SocketKey.PlayerTurn, data => {
 
@@ -180,6 +237,13 @@ export class LobbyComponent implements OnInit {
       this.manageUI(data);
     });
 
+    this.socket.on(SocketKey.FinishGame, data => {
+      console.log(data);
+      this.manageUI(data);
+      if (this.isAdmin) {
+        this.showRetry();
+      }
+    });
 
     this.socket.on(SocketKey.PlayerKick, data => {
 

@@ -63,6 +63,25 @@
     height: 10%;
 }
 
+.player-bet-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: grey;
+  height: 90%;
+}
+
+.player-bet-div {
+  width:40%;
+  height:40%;
+  background: white;
+  border-radius:10px;
+}
+
+.player-bet-info {
+  background-color: yellow;
+}
+
 .lobby-user {
     color: white;
     width: 100px;

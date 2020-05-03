@@ -3,4 +3,7 @@ export class User {
     id: string;
     name: string;
     credits: number;
+    currentBet: number;
+    score: number;
+    hasDouble: boolean;
 }
