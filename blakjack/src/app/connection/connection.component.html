@@ -1,0 +1,28 @@
+<div class="onboarding" fxLayout="column" fxLayoutAlign="center center" *ngIf="!username">
+    <div class="onboarding-username-div" fxLayout="column" fxLayoutAlign="center center">
+        <h1>Rejoins-nous !</h1>
+        <form class="example-form" fxLayout="column" fxLayoutAlign="center center">
+            <mat-form-field class="example-full-width">
+                <mat-label>Pseudo</mat-label>
+                <input #username matInput placeholder="Pseudo" autocomplete='off'
+                    (keyUp.enter)="createUsername($event.target.value)">
+                <!-- <div matSuffix class="icon p-{{ selectedIcon }}"></div> -->
+            </mat-form-field>
+            <div fxLayout="row wrap" style="width: 250px;"  fxLayoutAlign="center">
+                <mat-radio-group [(ngModel)]="selectedIcon" name="selectedIcon" fxLayout="row wrap" fxLayoutAlign="center">
+                    <mat-radio-button
+                     *ngFor="let icon of icons"
+                     [value]="icon"
+                     color="primary"
+                     disableRipple="true">
+                        <div class="icon p-{{ icon }}" [ngClass]="{'selected' : selectedIcon === icon}" fxLayout="column"></div> 
+                    </mat-radio-button>
+                </mat-radio-group>
+
+                <!-- <div *ngFor="let icon of icons" class="icon p-{{ icon }}"></div> -->
+            </div>
+        </form>
+        <br>
+        <button mat-raised-button color="primary" (click)="createUsername(username.value)" [disabled]="!username.value">Valider mon pseudo </button>
+    </div>
+</div>

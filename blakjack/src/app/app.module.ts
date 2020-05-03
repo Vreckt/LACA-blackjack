@@ -15,6 +15,9 @@ import {MatInputModule} from '@angular/material/input';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
+import { ConnectionComponent } from './connection/connection.component';
+import {MatRadioModule} from '@angular/material/radio';
+import {MatMenuModule} from '@angular/material/menu';
 
 const materials = [
   MatListModule,
@@ -25,12 +28,15 @@ const materials = [
   MatInputModule,
   FormsModule,
   MatDialogModule,
-  MatSnackBarModule
+  MatSnackBarModule,
+  MatRadioModule,
+  MatMenuModule
 ];
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    ConnectionComponent
   ],
   imports: [
     BrowserModule,

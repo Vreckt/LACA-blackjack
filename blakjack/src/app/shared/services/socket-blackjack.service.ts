@@ -15,11 +15,13 @@ export class SocketBlackJackService {
 
   connectToSocket() {
     const user = localStorage.getItem('username');
+    const iconColor = localStorage.getItem('iconColor');
     this.socket = io(environment.SOCKET_ENDPOINT, {
       query: {
         username: user,
+        iconColor: +iconColor,
         token: 'cde',
-        oldSocket: this.getConnectionId()
+        oldSocket: this.getConnectionId(),
       }
     });
   }
@@ -29,7 +31,8 @@ export class SocketBlackJackService {
   }
 
   keepConnectionId(connId: string) {
-    if (!this.getConnectionId()) {
+    if (this.getConnectionId() !== connId) {
+      console.log(connId);
       localStorage.setItem('connId', connId);
     }
   }

@@ -7,3 +7,80 @@ body {
     background: #263238;
    
 }
+
+.icon {
+    width: 50px;
+    height: 50px;
+    border: 2px dotted black;
+    border-radius: 50%;
+    margin: 2%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.s-icon {
+    width: 25px;
+    height: 25px;
+    border: 0.1rem solid;
+    border-radius: 50%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+
+.p-1 {
+    background-image: url("./assets/images/icons/player_ic_1.png");
+    // fill: white;
+    color: red;
+    border-color: #000000;
+}
+
+.p-2 {
+    background-image: url("./assets/images/icons/player_ic_2.png");
+    border-color: #E74C3C;
+}
+
+.p-3 {
+    background-image: url("assets/images/icons/player_ic_3.png");
+    border-color: #2ECC71;
+}
+
+.p-4 {
+    background-image: url("assets/images/icons/player_ic_4.png");
+    border-color: #9B59B6;
+}
+
+.p-5 {
+    background-image: url("assets/images/icons/player_ic_5.png");
+    border-color: #3498DB;
+}
+
+.p-6 {
+    background-image: url("assets/images/icons/player_ic_6.png");
+    border-color: #E67E22;
+}
+
+.p-7 {
+    background-image: url("assets/images/icons/player_ic_7.png");
+    border-color: #F1C40F;
+}
+
+.p-8 {
+    background-image: url("assets/images/icons/player_ic_8.png");
+    border-color: #95A5A6;
+}
+
+.p-9 {
+    background-image: url("assets/images/icons/player_ic_9.png");
+    border-color: #1ABC9C;
+}
+
+.p-10 {
+    background-image: url("assets/images/icons/player_ic_10.png");
+    border-color: #FFA8FC;
+}
+
+.selected {
+    border-style: solid;
+}

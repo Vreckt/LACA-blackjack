@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  SOCKET_ENDPOINT: 'http://localhost:8081'
+  SOCKET_ENDPOINT: 'http://logancarlier.be:8080/'
 };
 
 /*
