@@ -1,0 +1,30 @@
+<div id="dialog" fxLayout="column" fxLayoutAlign="center" fxLayoutGap="20px">
+    <h1>Tableau des scores</h1>
+    <mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+        <ng-container matColumnDef="username">
+          <mat-header-cell *matHeaderCellDef> Joueur </mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{element.username}} </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="point">
+          <mat-header-cell *matHeaderCellDef> Points </mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{element.point}} </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="status">
+          <mat-header-cell *matHeaderCellDef> Status </mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{element.status}} </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="credits">
+          <mat-header-cell *matHeaderCellDef> Crédit </mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{element.credits}} </mat-cell>
+        </ng-container>
+      
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+      </mat-table>
+      <div id="btn_area" fxLayout="row" fxLayoutAlign="center center">
+        <button mat-raised-button color="primary" *ngIf="data.admin"
+        [mat-dialog-close]="'restart'" cdkFocusInitial>Restart</button>
+        <span *ngIf="!data.admin">En Attente de l'administrateur pour relancer la partie</span>
+        <button mat-button [mat-dialog-close]="'leave'">Quitter</button>
+      </div>
+</div>

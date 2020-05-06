@@ -18,6 +18,8 @@ import { RulesComponent, DialogRulesComponent } from './rules/rules.component';
 import { CommonModule } from '@angular/common';
 import {MatDialogModule} from '@angular/material/dialog';
 import {MatMenuModule} from '@angular/material/menu';
+import { TableComponent } from './lobby/dialogTable/table.component';
+import { MatTableModule } from '@angular/material/table';
 
 const materials = [
   MatListModule,
@@ -28,7 +30,8 @@ const materials = [
   MatInputModule,
   FormsModule,
   MatDialogModule,
-  MatMenuModule
+  MatMenuModule,
+  MatTableModule
 ];
 
 @NgModule({
@@ -36,7 +39,8 @@ const materials = [
     BlackjackComponent,
     LobbyComponent,
     RulesComponent,
-    DialogRulesComponent
+    DialogRulesComponent,
+    TableComponent
   ],
   imports: [
     CommonModule,

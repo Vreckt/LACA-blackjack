@@ -23,4 +23,4 @@ export class RulesComponent implements OnInit {
   templateUrl: './dialog.rules.html',
   styleUrls: ['./rules.component.scss']
 })
-export class DialogRulesComponent { }
+export class DialogRulesComponent {}

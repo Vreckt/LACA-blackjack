@@ -5,6 +5,7 @@ import { SocketKey } from '../../../shared/models/enums/SocketKey';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DialogRetryComponent } from './dialogRetry/dialog.retry.component';
 import { MatDialog } from '@angular/material/dialog';
+import { TableComponent } from './dialogTable/table.component';
 
 @Component({
   selector: 'app-lobby',
@@ -145,7 +146,6 @@ export class LobbyComponent implements OnInit {
   }
 
   onLeaveTable() {
-    // alert('TODO LEAVE TABLE');
     this.socket.emit(SocketKey.LeaveTable, {roomId: this.table.id});
     this.router.navigate(['../'], { relativeTo: this.route });
   }
@@ -164,17 +164,47 @@ export class LobbyComponent implements OnInit {
     });
   }
 
-  // Dialog
-  private showRetry() {
-    const dialogRef = this.dialog.open(DialogRetryComponent, {
-      width: '250px'
+  private manageEndGame(data) {
+    const listUsers = [];
+    for (const user of data.table.users) {
+      listUsers.push({
+        username: user.name,
+        point: user.score,
+        status: false,
+        credits: +user.currentBet
+      });
+    }
+    const dialog = this.dialog.open(TableComponent, {
+      width: '50%',
+      disableClose: true,
+      data :
+      {
+        score: listUsers,
+        admin: this.isAdmin
+      }
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
-      this.onStartGame();
+    dialog.afterClosed().subscribe(result => {
+      if (result === 'restart') {
+        this.onStartGame();
+      } else if (result === 'leave') {
+        this.onLeaveTable();
+      } else {
+        dialog.close();
+      }
     });
   }
+
+  // Dialog
+  // private showRetry() {
+  //   const dialogRef = this.dialog.open(DialogRetryComponent, {
+  //     width: '250px'
+  //   });
+
+  //   dialogRef.afterClosed().subscribe(result => {
+  //     console.log('The dialog was closed');
+  //     this.onStartGame();
+  //   });
+  // }
 
   private setupSocketConnection() {
     this.socket.on(SocketKey.JoinTable, data => {
@@ -238,11 +268,9 @@ export class LobbyComponent implements OnInit {
     });
 
     this.socket.on(SocketKey.FinishGame, data => {
-      console.log(data);
+      console.log('end: ', data);
       this.manageUI(data);
-      if (this.isAdmin) {
-        this.showRetry();
-      }
+      this.manageEndGame(data);
     });
 
     this.socket.on(SocketKey.PlayerKick, data => {

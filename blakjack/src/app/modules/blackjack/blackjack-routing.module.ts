@@ -6,14 +6,9 @@ import { LobbyComponent } from './lobby/lobby.component';
 
 
 const routes: Routes = [
-  {path: '', component: BlackjackComponent,
-    // children: [
-    //   {path: ':id', component: LobbyComponent}
-    // ]
-  },
+  {path: '', component: BlackjackComponent},
   {path: ':id', component: LobbyComponent},
-  {path: 'rules', component: RulesComponent},
-  {path: '**', component: BlackjackComponent}
+  {path: 'rules', component: RulesComponent}
 ];
 
 @NgModule({
