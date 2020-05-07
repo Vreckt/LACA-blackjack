@@ -11,6 +11,7 @@ class Table {
       this.bank = new Bank();
       this.currentPlayer = '';
       this.status = 'P';
+      this.adminId = '';
     }
 
     getUser() {
@@ -34,6 +35,22 @@ class Table {
         if (user.currentBet == 0) { return false }
       }
       return true
+    }
+
+    deleteUserFromTable(userId) {
+      const delUserIndex = this.users.findIndex(u => u.id === userId);
+      const delUser = this.users.splice(delUserIndex, 1);
+      return { delUser, delUserIndex };
+    }
+
+    getNextPlayer(userId) {
+      const nextPlayerIndex = this.users.findIndex(u => u.id === userId) + 1;
+      const nextPlayer = this.users[nextPlayerIndex];
+      return { nextPlayer, nextPlayerIndex };      
+    }
+
+    getPlayerHand(userId) {
+      return this.users.find(u => u.id === userId).hand;
     }
 
     clean() {

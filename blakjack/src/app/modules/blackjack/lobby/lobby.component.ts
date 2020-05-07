@@ -213,7 +213,8 @@ export class LobbyComponent implements OnInit {
     this.socket.on(SocketKey.PlayerLeave, data => {
       data.userId = data.table.currentPlayer;
       this.manageUI(data);
-      this.showRoundPlayer(data.table.users.find(u => u.id === data.table.currentPlayer).name);
+      console.log(data);
+      // this.showRoundPlayer(data.table.users.find(u => u.id === data.table.currentPlayer).name);
     });
 
 

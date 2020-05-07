@@ -53,6 +53,7 @@ io.on(socketKeys.Connection, (socket) => {
             // const usr = listPlayers.find(u => u.id === user.id);
             let table = new Table(roomId, data.roomName, 1);
             table.users.push(user);
+            table.adminId = user.id;
             listServer.set(roomId, table);
             io.to(socket.id).emit(socketKeys.NewLobby, { roomId: roomId, roomName: data.roomName});
             socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
@@ -96,28 +97,26 @@ io.on(socketKeys.Connection, (socket) => {
 
     socket.on(socketKeys.LeaveTable, (data) => {
         let table = listServer.get(data.roomId);
-        const nextPlayerIndex = listServer.get(data.roomId).users.findIndex(u => u.id === user.id) + 1;
-        const nextPlayer = listServer.get(data.roomId).users[nextPlayerIndex];
+        const { nextPlayer, nextPlayerIndex } = table.getNextPlayer(user.id);
         let response = null;
         socket.leave(data.roomId);
-        const usrIndex = table.users.findIndex(u => u.id === user.id);
-        table.users.splice(usrIndex, 1);
-        listServer.set(data.roomId, table);
+        table.users.splice(nextPlayerIndex - 1, 1);
         if (table.users.length === 0) {
             listServer.delete(data.roomId);
             socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
         } else {
             if (table.currentPlayer === user.id) {
                 table.currentPlayer = nextPlayer.id;
-                listServer.set(data.roomId, table);
-                console.log(nextPlayer);
                 response = bj.manageBlackjack(nextPlayer.hand, nextPlayer.id);
-                response.table = table;
             } else {
-                response = bj.manageBlackjack(table.users[0].hand, table.users[0].id);
-                response.table = table;
+                response = bj.manageBlackjack(table.getPlayerHand(table.currentPlayer), table.currentPlayer);
             }
+            if (table.adminId === user.id) {
+                table.adminId = nextPlayer.id;
+            }
+            response.table = table;
         }
+        listServer.set(data.roomId, table);
         socket.to(data.roomId).emit(socketKeys.PlayerLeave, response);
     });
 
