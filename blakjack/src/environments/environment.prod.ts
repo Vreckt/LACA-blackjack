@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  SOCKET_ENDPOINT: 'http://www.logancarlier.be:8081/'
+  SOCKET_ENDPOINT: 'http://logancarlier.be:8080/'
 };

@@ -18,6 +18,7 @@ import {MatSnackBarModule} from '@angular/material/snack-bar';
 import { ConnectionComponent } from './connection/connection.component';
 import {MatRadioModule} from '@angular/material/radio';
 import {MatMenuModule} from '@angular/material/menu';
+import {MatTableModule} from '@angular/material/table';
 
 const materials = [
   MatListModule,
@@ -30,7 +31,8 @@ const materials = [
   MatDialogModule,
   MatSnackBarModule,
   MatRadioModule,
-  MatMenuModule
+  MatMenuModule,
+  MatTableModule
 ];
 
 @NgModule({
