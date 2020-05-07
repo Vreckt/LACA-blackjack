@@ -95,17 +95,30 @@ io.on(socketKeys.Connection, (socket) => {
     });
 
     socket.on(socketKeys.LeaveTable, (data) => {
+        let table = listServer.get(data.roomId);
+        const nextPlayerIndex = listServer.get(data.roomId).users.findIndex(u => u.id === user.id) + 1;
+        const nextPlayer = listServer.get(data.roomId).users[nextPlayerIndex];
+        let response = null;
         socket.leave(data.roomId);
-        const usrIndex = listServer.get(data.roomId).users.findIndex(u => u.id === user.id);
-        listServer.get(data.roomId).users.splice(usrIndex, 1);
-        if (listServer.get(data.roomId).users.length === 0) {
+        const usrIndex = table.users.findIndex(u => u.id === user.id);
+        table.users.splice(usrIndex, 1);
+        listServer.set(data.roomId, table);
+        if (table.users.length === 0) {
             listServer.delete(data.roomId);
             socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
+        } else {
+            if (table.currentPlayer === user.id) {
+                table.currentPlayer = nextPlayer.id;
+                listServer.set(data.roomId, table);
+                console.log(nextPlayer);
+                response = bj.manageBlackjack(nextPlayer.hand, nextPlayer.id);
+                response.table = table;
+            } else {
+                response = bj.manageBlackjack(table.users[0].hand, table.users[0].id);
+                response.table = table;
+            }
         }
-        socket.to(data.roomId).emit(socketKeys.PlayerLeave, {
-            table: listServer.get(data.roomId),
-            status: 'success'
-        });
+        socket.to(data.roomId).emit(socketKeys.PlayerLeave, response);
     });
 
     socket.on(socketKeys.StartGame, (data) => {
@@ -159,8 +172,8 @@ io.on(socketKeys.Connection, (socket) => {
                   table.bank.hand.push(bj.drawCard(table.deck.draw(1)));
                   table.bank.hand.push(bj.drawCard(table.deck.draw(1)));
                   table.bank.hand[1].visible = false;
+                  table.setCurrentPlayerTurn(table.users[0].id);
                   listServer.set(data.roomId, table);
-
                   const response = bj.manageBlackjack(table.users[0].hand, table.users[0].id);
                   response.table = listServer.get(data.roomId);
                   io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
@@ -246,6 +259,8 @@ io.on(socketKeys.Connection, (socket) => {
         } else {
             const nextPlayerIndex = currentTable.users.findIndex(u => u.id === user.id) + 1;
             const nextPlayer = currentTable.users[nextPlayerIndex];
+            currentTable.currentPlayer = nextPlayer.id;
+            listServer.set(data.roomId, currentTable);
             console.log(nextPlayer);
             const response = bj.manageBlackjack(nextPlayer.hand, nextPlayer.id);
             response.table = listServer.get(data.roomId);

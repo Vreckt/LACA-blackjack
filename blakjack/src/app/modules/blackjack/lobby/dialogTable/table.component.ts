@@ -22,4 +22,8 @@ export class TableComponent implements OnInit {
   ngOnInit(): void {
     this.dataSource.data = this.data.score;
   }
+
+  onCloseDialog() {
+    this.dialogRef.close();
+  }
 }

@@ -44,6 +44,13 @@ class Table {
         player.clean();
       }
     }
+    setCurrentPlayerTurn(pId) {
+      this.currentPlayer = pId;
+    }
+
+    getCurrentPlayerTurn() {
+      return this.currentPlayer;
+    }
 }
 
 module.exports = Table;

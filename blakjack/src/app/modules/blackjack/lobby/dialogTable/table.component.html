@@ -24,7 +24,9 @@
       <div id="btn_area" fxLayout="row" fxLayoutAlign="center center">
         <button mat-raised-button color="primary" *ngIf="data.admin"
         [mat-dialog-close]="'restart'" cdkFocusInitial>Restart</button>
-        <span *ngIf="!data.admin">En Attente de l'administrateur pour relancer la partie</span>
+        <button mat-raised-button color="primary" *ngIf="!data.admin"
+        (click)="onCloseDialog()">Fermer</button>
+        <!-- <span *ngIf="!data.admin">En Attente de l'administrateur pour relancer la partie</span> -->
         <button mat-button [mat-dialog-close]="'leave'">Quitter</button>
       </div>
 </div>

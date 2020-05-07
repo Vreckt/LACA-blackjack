@@ -194,18 +194,6 @@ export class LobbyComponent implements OnInit {
     });
   }
 
-  // Dialog
-  // private showRetry() {
-  //   const dialogRef = this.dialog.open(DialogRetryComponent, {
-  //     width: '250px'
-  //   });
-
-  //   dialogRef.afterClosed().subscribe(result => {
-  //     console.log('The dialog was closed');
-  //     this.onStartGame();
-  //   });
-  // }
-
   private setupSocketConnection() {
     this.socket.on(SocketKey.JoinTable, data => {
       console.log(data);
@@ -223,9 +211,9 @@ export class LobbyComponent implements OnInit {
     });
 
     this.socket.on(SocketKey.PlayerLeave, data => {
-      if (data.status === 'success') {
-        this.manageUI(data);
-      }
+      data.userId = data.table.currentPlayer;
+      this.manageUI(data);
+      this.showRoundPlayer(data.table.users.find(u => u.id === data.table.currentPlayer).name);
     });
 
 
@@ -249,7 +237,6 @@ export class LobbyComponent implements OnInit {
     });
 
     this.socket.on(SocketKey.PlayerTurn, data => {
-
       console.log(data);
       this.manageUI(data);
       const tmpuser = data.table.users.find(u => u.id === data.userId);
@@ -274,7 +261,6 @@ export class LobbyComponent implements OnInit {
     });
 
     this.socket.on(SocketKey.PlayerKick, data => {
-
       console.log(data.kickPlayer);
       if (this.player.id === data.kickPlayer.id) {
         this.onLeaveTable();
