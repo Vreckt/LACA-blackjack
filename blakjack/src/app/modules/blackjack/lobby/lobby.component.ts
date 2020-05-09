@@ -25,12 +25,11 @@ export class LobbyComponent implements OnInit {
   showTable = false;
   showBet = false;
   canBetButton = false;
-  private socket: any = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private socketBlackJackService: SocketBlackJackService,
+    private socketService: SocketBlackJackService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
     ) {
@@ -40,13 +39,11 @@ export class LobbyComponent implements OnInit {
     }
 
   ngOnInit() {
-    this.socket = this.socketBlackJackService.socket;
-    if (this.socket) {
+    if (this.socketService.socket) {
       this.aftersocketInit();
     } else {
-      this.socketBlackJackService.connectToSocket();
-      this.socket = this.socketBlackJackService.socket;
-      if (!localStorage.getItem('username') || !this.socket) {
+      this.socketService.connectToSocket();
+      if (!localStorage.getItem('username') || !this.socketService.socket) {
         sessionStorage.setItem('inviteTo', 'blackjack/' + this.tableId);
         this.router.navigate(['./connection']);
       } else {
@@ -56,16 +53,16 @@ export class LobbyComponent implements OnInit {
   }
 
   aftersocketInit() {
-    if (this.socket) {
+    if (this.socketService.socket) {
       this.setupSocketConnection();
       if (!localStorage.getItem('username')) {
         const pseudo = prompt('Pseudo');
         localStorage.setItem('username', pseudo);
-        this.socket.emit(SocketKey.JoinTable, {
+        this.socketService.socket.emit(SocketKey.JoinTable, {
           roomId: this.tableId
         });
       } else {
-        this.socket.emit(SocketKey.JoinTable, {
+        this.socketService.socket.emit(SocketKey.JoinTable, {
           roomId: this.tableId
         });
       }
@@ -78,31 +75,31 @@ export class LobbyComponent implements OnInit {
     this.table = JSON.parse(JSON.stringify(data.table));
     this.showTable = this.table.status === 'S' || this.table.status === 'B' || this.table.status === 'F';
     const playerIndex = this.table.users.findIndex(user =>
-      user.id === this.socketBlackJackService.getConnectionId() && user.name === localStorage.getItem('username')
+      user.id === this.socketService.getConnectionId() && user.name === localStorage.getItem('username')
     );
     console.log(playerIndex);
     this.player = this.table.users.splice(playerIndex, 1)[0];
     const isMyTurn = this.player.id === data.userId;
     this.enableDrawBtn = data.isShownDrawButton && isMyTurn;
     this.enableEndTurn = isMyTurn && this.table.status === 'S';
-    this.enableDoubleBtn = !this.player.hasDouble && isMyTurn && data.isShownDrawButton;
+    this.enableDoubleBtn = data.isShownDoubleButton && isMyTurn;
     console.log(data);
     this.showBet = this.table.status === 'B' && this.player.currentBet === 0;
     this.canBetButton = this.showBet;
 
-    if (this.table.id.includes(this.socketBlackJackService.getConnectionId())) {
+    if (this.table.id.includes(this.socketService.getConnectionId())) {
       this.isAdmin = true;
     }
   }
 
   onStartGame() {
-    this.socket.emit(SocketKey.StartGame, {
+    this.socketService.socket.emit(SocketKey.StartGame, {
       roomId: this.table.id
     });
   }
 
   onRemovePlayer(id: string) {
-    this.socket.emit(SocketKey.PlayerKick, {
+    this.socketService.socket.emit(SocketKey.PlayerKick, {
       roomId: this.table.id,
       currentPlayerId: this.player.id,
       kickPlayerId: id
@@ -110,7 +107,7 @@ export class LobbyComponent implements OnInit {
   }
 
   drawCard() {
-    this.socket.emit(SocketKey.DrawCard, ({
+    this.socketService.socket.emit(SocketKey.DrawCard, ({
       roomId: this.tableId,
       userId: this.player.id
     }));
@@ -122,7 +119,7 @@ export class LobbyComponent implements OnInit {
     if (this.canBetButton) {
       this.canBetButton = false;
       console.log(betMoney);
-      this.socket.emit(SocketKey.PlayerBet, {
+      this.socketService.socket.emit(SocketKey.PlayerBet, {
         roomId: this.tableId,
         userId: this.player.id,
         betMoney
@@ -132,21 +129,21 @@ export class LobbyComponent implements OnInit {
 
   doubleBet() {
     this.enableDrawBtn = false;
-    this.socket.emit(SocketKey.PlayerDouble, {
+    this.socketService.socket.emit(SocketKey.PlayerDouble, {
       roomId: this.tableId,
       userId: this.player.id
     });
   }
 
   endRound() {
-    this.socket.emit(SocketKey.PlayerEnd, {
+    this.socketService.socket.emit(SocketKey.PlayerEnd, {
       roomId: this.tableId,
       userId: this.player.id
     });
   }
 
   onLeaveTable() {
-    this.socket.emit(SocketKey.LeaveTable, {roomId: this.table.id});
+    this.socketService.socket.emit(SocketKey.LeaveTable, {roomId: this.table.id});
     this.router.navigate(['../'], { relativeTo: this.route });
   }
 
@@ -165,6 +162,7 @@ export class LobbyComponent implements OnInit {
   }
 
   private manageEndGame(data) {
+    console.log("manageEndGame");
     const listUsers = [];
     for (const user of data.table.users) {
       listUsers.push({
@@ -195,7 +193,8 @@ export class LobbyComponent implements OnInit {
   }
 
   private setupSocketConnection() {
-    this.socket.on(SocketKey.JoinTable, data => {
+
+    this.socketService.listen(SocketKey.JoinTable).subscribe((data: any) => {
       console.log(data);
       if (data.status === 'success') {
         this.manageUI(data);
@@ -203,30 +202,29 @@ export class LobbyComponent implements OnInit {
       }
     });
 
-    this.socket.on(SocketKey.PlayerJoin, data => {
+    this.socketService.listen(SocketKey.PlayerJoin).subscribe((data: any) => {
       console.log(data);
       if (data.status === 'success') {
         this.manageUI(data);
       }
     });
 
-    this.socket.on(SocketKey.PlayerLeave, data => {
+    this.socketService.listen(SocketKey.PlayerLeave).subscribe((data: any) => {
       data.userId = data.table.currentPlayer;
       this.manageUI(data);
       console.log(data);
       // this.showRoundPlayer(data.table.users.find(u => u.id === data.table.currentPlayer).name);
     });
 
-
-    this.socket.on(SocketKey.BankShowCard, data => {
+    this.socketService.listen(SocketKey.BankShowCard).subscribe((data: any) => {
       this.table.bank = data.table.bank;
     });
 
-    this.socket.on(SocketKey.BankDrawCard, data => {
+    this.socketService.listen(SocketKey.BankDrawCard).subscribe((data: any) => {
       this.table.bank = data.table.bank;
     });
 
-    this.socket.on(SocketKey.PlayerBet, data => {
+    this.socketService.listen(SocketKey.PlayerBet).subscribe((data: any) => {
       console.log(data);
       this.manageUI(data);
       const tmpUser = data.table.users.find(u => u.id === data.userId);
@@ -237,7 +235,7 @@ export class LobbyComponent implements OnInit {
       }
     });
 
-    this.socket.on(SocketKey.PlayerTurn, data => {
+    this.socketService.listen(SocketKey.PlayerTurn).subscribe((data: any) => {
       console.log(data);
       this.manageUI(data);
       const tmpuser = data.table.users.find(u => u.id === data.userId);
@@ -245,23 +243,24 @@ export class LobbyComponent implements OnInit {
       this.showRoundPlayer(tmpuser.name);
     });
 
-    this.socket.on(SocketKey.StartGame, data => {
+    this.socketService.listen(SocketKey.StartGame).subscribe((data: any) => {
       console.log(data);
       this.manageUI(data);
     });
 
-    this.socket.on(SocketKey.DrawCard, data => {
+    this.socketService.listen(SocketKey.DrawCard).subscribe((data: any) => {
       console.log(data);
       this.manageUI(data);
     });
 
-    this.socket.on(SocketKey.FinishGame, data => {
+    this.socketService.listen(SocketKey.FinishGame).subscribe((data: any) => {
+      console.log(this.socketService.socket);
       console.log('end: ', data);
       this.manageUI(data);
       this.manageEndGame(data);
     });
 
-    this.socket.on(SocketKey.PlayerKick, data => {
+    this.socketService.listen(SocketKey.PlayerKick).subscribe((data: any) => {
       console.log(data.kickPlayer);
       if (this.player.id === data.kickPlayer.id) {
         this.onLeaveTable();
@@ -270,5 +269,11 @@ export class LobbyComponent implements OnInit {
         alert('Le joueur ' + data.kickPlayer.name + ' a été expulsé du lobby par l\'admin');
       }
     });
+  }
+
+  ngOnDestroy() {
+    if (this.socketService.socket) {
+      this.socketService.socket.removeAllListeners();
+    }
   }
 }
