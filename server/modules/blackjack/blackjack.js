@@ -19,7 +19,7 @@ exports.drawCard = (cardDraw) => {
     return card;
 };
 
-exports.manageBlackjack = (listCards, userId) => {
+exports.manageBlackjack = (listCards, player) => {
     let point = 0;
     let isBlackJack = false;
     let isWin = false;
@@ -44,12 +44,12 @@ exports.manageBlackjack = (listCards, userId) => {
         }
     }
     const response = new ResponseBJAction();
-    response.userId = userId;
+    response.userId = player ? player.id : null;
     response.point = point;
     response.isWin = isWin;
     response.isBlackJack = isBlackJack;
-    response.isShowDoubleButton = (listCards.length < 3);
-    response.isShownDrawButton = (point < 21);
+    response.isShownDrawButton = player ? (point < 21) && !player.hasDouble : false;
+    response.isShownDoubleButton = (listCards.length < 3) && response.isShownDrawButton;
 
     return response;
 };
@@ -68,7 +68,7 @@ exports.manageEndGame = (table) => {
     console.log(bank);
     // Check if users win
     for(const user of table.users) {
-        let tmpResponse = this.manageBlackjack(user.hand, user.id);
+        let tmpResponse = this.manageBlackjack(user.hand, user);
         if (tmpResponse.isWin) {
             listOfResponse.push(tmpResponse);
         }
@@ -93,7 +93,7 @@ exports.manageEndGame = (table) => {
                         table.users.find(u => u.id === response.userId).credits += table.users.find(u => u.id === response.userId).currentBet * 2.5;
                     }
                 } else {
-                    if (firstPlayer.isBlackJack) {
+                    if (response.isBlackJack) {
                         console.log('only bet');
 
                         table.users.find(u => u.id === response.userId).credits += table.users.find(u => u.id === response.userId).currentBet;

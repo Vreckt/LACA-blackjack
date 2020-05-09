@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
 import { environment } from 'src/environments/environment';
 import { SocketKey } from '../models/enums/SocketKey';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +24,14 @@ export class SocketBlackJackService {
         token: 'cde',
         oldSocket: this.getConnectionId(),
       }
+    });
+  }
+
+  listen(eventName: string) {
+    return new Observable((subscriber) => {
+      this.socket.on(eventName, (data) => {
+        subscriber.next(data);
+      })
     });
   }
 

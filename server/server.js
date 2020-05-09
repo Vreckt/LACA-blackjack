@@ -107,7 +107,7 @@ io.on(socketKeys.Connection, (socket) => {
         } else {
             if (table.currentPlayer === user.id) {
                 table.currentPlayer = nextPlayer.id;
-                response = bj.manageBlackjack(nextPlayer.hand, nextPlayer.id);
+                response = bj.manageBlackjack(nextPlayer.hand, nextPlayer);
             } else {
                 response = bj.manageBlackjack(table.getPlayerHand(table.currentPlayer), table.currentPlayer);
             }
@@ -165,6 +165,7 @@ io.on(socketKeys.Connection, (socket) => {
                   while (i < 2) {
                       for (const player of table.users) {
                           player.hand.push(bj.drawCard(table.deck.draw(1)));
+                          player.score = bj.manageBlackjack(player.hand, player).point;
                       }
                       i++;
                   }
@@ -173,7 +174,7 @@ io.on(socketKeys.Connection, (socket) => {
                   table.bank.hand[1].visible = false;
                   table.setCurrentPlayerTurn(table.users[0].id);
                   listServer.set(data.roomId, table);
-                  const response = bj.manageBlackjack(table.users[0].hand, table.users[0].id);
+                  const response = bj.manageBlackjack(table.users[0].hand, table.users[0]);
                   response.table = listServer.get(data.roomId);
                   io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
               }, 1000);
@@ -190,28 +191,17 @@ io.on(socketKeys.Connection, (socket) => {
             listServer.get(data.roomId).users[currentPlayerIndex].credits -= currentPlayer.currentBet;
             listServer.get(data.roomId).users[currentPlayerIndex].currentBet = currentPlayer.currentBet * 2;
             listServer.get(data.roomId).users[currentPlayerIndex].hasDouble = true;
-            let response = bj.manageBlackjack(listServer.get(data.roomId).users[currentPlayerIndex].hand, listServer.get(data.roomId).users[currentPlayerIndex].id);
+            let response = bj.manageBlackjack(listServer.get(data.roomId).users[currentPlayerIndex].hand, listServer.get(data.roomId).users[currentPlayerIndex]);
             response.table = listServer.get(data.roomId);
             io.in(data.roomId).emit(socketKeys.PlayerBet, response);
+            drawCard(data, user, true);
+        } else {
+            console.log("Le joueur ne peut pas doubler, il n'a pas assez de thunes")
         }
     })
 
     socket.on(socketKeys.DrawCard, (data) => {
-        if (listServer.has(data.roomId)) {
-            let table = new Table();
-            table = listServer.get(data.roomId);
-            const playerIndex = table.users.findIndex(u => u.id === data.userId);
-            if (table.users[playerIndex]) {
-                const card = bj.drawCard(table.deck.draw(1));
-                table.users[playerIndex].hand.push(card);
-                const response = bj.manageBlackjack(table.users[playerIndex].hand, user.id);
-                response.cardDraw = card;
-                response.table = table;
-                listServer.set(data.roomId, table);
-                // on envoit à toutes la room
-                io.in(data.roomId).emit(socketKeys.DrawCard, response);
-            }
-        }
+        drawCard(data, user);
     });
 
     socket.on(socketKeys.PlayerEnd, (data) => {
@@ -247,12 +237,14 @@ io.on(socketKeys.Connection, (socket) => {
                         if (i === cardsDraw.length - 1){
                             response.table = bj.manageEndGame(response.table);
                             io.in(data.roomId).emit(socketKeys.FinishGame, response);
+                            console.log("finishGame with cards draw by the bank");
                         }
                     }, i * 1000);
                 }
             } else {
                 response.table = bj.manageEndGame(response.table);
                 io.in(data.roomId).emit(socketKeys.FinishGame, response);
+                console.log("Finish game with no cards draw by the bank");
             }
 
         } else {
@@ -261,7 +253,7 @@ io.on(socketKeys.Connection, (socket) => {
             currentTable.currentPlayer = nextPlayer.id;
             listServer.set(data.roomId, currentTable);
             console.log(nextPlayer);
-            const response = bj.manageBlackjack(nextPlayer.hand, nextPlayer.id);
+            const response = bj.manageBlackjack(nextPlayer.hand, nextPlayer);
             response.table = listServer.get(data.roomId);
             io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
         }
@@ -276,6 +268,25 @@ io.on(socketKeys.Connection, (socket) => {
 
     });
 });
+
+const drawCard = (data, user) => {
+    if (listServer.has(data.roomId)) {
+        let table = new Table();
+        table = listServer.get(data.roomId);
+        const playerIndex = table.users.findIndex(u => u.id === data.userId);
+        if (table.users[playerIndex]) {
+            const card = bj.drawCard(table.deck.draw(1));
+            table.users[playerIndex].hand.push(card);
+            const response = bj.manageBlackjack(table.users[playerIndex].hand, user);
+            table.users[playerIndex].score = response.point;
+            response.cardDraw = card;
+            response.table = table;
+            listServer.set(data.roomId, table);
+            // on envoit à toutes la room
+            io.in(data.roomId).emit(socketKeys.DrawCard, response);
+        }
+    }
+}
 
 const extractServerName = () => {
     return Array.from( listServer.values());
