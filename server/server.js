@@ -4,7 +4,7 @@ const Table = require('./shared/models/table'),
     Player = require('./shared/models/player'),
     socketKeys = require('./shared/enum/socketKeys'),
     { decks } = require('./cards');
-    
+const ResponseBJAction = require('./shared/models/response/responseBlackJack');
 var express = require('express'),
     app = express(),
     server = require('http').createServer(app),
@@ -26,7 +26,7 @@ server.listen(port, () => {
 // sockets
 io.on(socketKeys.Connection, (socket) => {
     console.log('User connected !');
-    let user = new Player(socket.conn.id, socket.handshake.query.username);
+    let user = new Player(socket.conn.id, socket.handshake.query.username, socket.handshake.query.iconColor);
 
     if (listPlayers.find(u =>  u.id === socket.handshake.query.oldSocket)) {
         socket.conn.id = socket.handshake.query.oldSocket;
@@ -50,7 +50,6 @@ io.on(socketKeys.Connection, (socket) => {
     socket.on(socketKeys.NewLobby, data => {
         const roomId = createRoomId(32) + user.id;
         if (!listServer.has(roomId)) {
-            // const usr = listPlayers.find(u => u.id === user.id);
             let table = new Table(roomId, data.roomName, 1);
             table.users.push(user);
             table.adminId = user.id;
@@ -64,22 +63,21 @@ io.on(socketKeys.Connection, (socket) => {
     });
 
     socket.on(socketKeys.JoinTable, (data) => {
+        let response = new ResponseBJAction();
         if (listServer.has(data.roomId)) {
-            // const usr = listPlayers.find(u => u.id === user.id);
-            if (!listServer.get(data.roomId).users.find(u => u.id === user.id)){
-                listServer.get(data.roomId).users.push(user);
-                socket.to(data.roomId).emit(socketKeys.PlayerJoin, {
-                    table: listServer.get(data.roomId),
-                    status: 'success'
-                });
+            let table = listServer.get(data.roomId);
+            if (table.isStarted()) {
+                response = bj.manageBlackjack(table.getPlayerHand(table.currentPlayer), table.currentPlayer);
+            }
+            response.table = table
+            if (!table.hasPlayer(user.id)){
+                table.users.push(user);
+                socket.to(data.roomId).emit(socketKeys.PlayerJoin, response);
             }
             socket.join(data.roomId);
-            io.to(socket.id).emit(socketKeys.JoinTable, {
-                table: listServer.get(data.roomId),
-                status: 'success'
-            });
+            listServer.set(data.roomId, table);
+            io.to(socket.id).emit(socketKeys.JoinTable, response);
         } else {
-            // Error
             io.to(socket.id).emit('Error', { message: errorMessage(1)});
         }
     });
@@ -96,28 +94,34 @@ io.on(socketKeys.Connection, (socket) => {
     });
 
     socket.on(socketKeys.LeaveTable, (data) => {
-        let table = listServer.get(data.roomId);
-        const { nextPlayer, nextPlayerIndex } = table.getNextPlayer(user.id);
-        let response = null;
-        socket.leave(data.roomId);
-        table.users.splice(nextPlayerIndex - 1, 1);
-        if (table.users.length === 0) {
-            listServer.delete(data.roomId);
-            socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
-        } else {
-            if (table.currentPlayer === user.id) {
-                table.currentPlayer = nextPlayer.id;
-                response = bj.manageBlackjack(nextPlayer.hand, nextPlayer);
+        if (listServer.has(data.roomId)) {
+            let table = listServer.get(data.roomId);
+            let response = new ResponseBJAction();
+            socket.leave(data.roomId);
+            table.users.splice(table.users.findIndex(u => u.id === user.id), 1);
+            if (table.users.length === 0) {
+                listServer.delete(data.roomId);
+                socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
             } else {
-                response = bj.manageBlackjack(table.getPlayerHand(table.currentPlayer), table.currentPlayer);
+                const { nextPlayer, nextPlayerIndex } = table.getNextPlayer(user.id);
+                if (table.currentPlayer === user.id && nextPlayerIndex < table.users.length) {
+                    table.currentPlayer = nextPlayer.id;
+                    response = bj.manageBlackjack(nextPlayer.hand, nextPlayer.id);
+                } else {
+                    if (table.isStarted()) {
+                        response = bj.manageBlackjack(table.getPlayerHand(table.currentPlayer), table.currentPlayer);
+                    }
+                }
+                if (table.adminId === user.id) {
+                    table.adminId = nextPlayer.id;
+                }
+                response.table = table;
             }
-            if (table.adminId === user.id) {
-                table.adminId = nextPlayer.id;
-            }
-            response.table = table;
+            listServer.set(data.roomId, table);
+            socket.to(data.roomId).emit(socketKeys.PlayerLeave, response);
+        } else {
+            io.to(socket.id).emit('Error', { message: errorMessage(1)});
         }
-        listServer.set(data.roomId, table);
-        socket.to(data.roomId).emit(socketKeys.PlayerLeave, response);
     });
 
     socket.on(socketKeys.StartGame, (data) => {
@@ -248,14 +252,18 @@ io.on(socketKeys.Connection, (socket) => {
             }
 
         } else {
-            const nextPlayerIndex = currentTable.users.findIndex(u => u.id === user.id) + 1;
-            const nextPlayer = currentTable.users[nextPlayerIndex];
-            currentTable.currentPlayer = nextPlayer.id;
-            listServer.set(data.roomId, currentTable);
-            console.log(nextPlayer);
+            const { nextPlayer, nextPlayerIndex } = currentTable.getNextPlayer(user.id);
             const response = bj.manageBlackjack(nextPlayer.hand, nextPlayer);
-            response.table = listServer.get(data.roomId);
-            io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
+            response.table = currentTable;
+            if (nextPlayer.hand.length === 0) {
+                response.table = bj.manageEndGame(response.table);
+                io.in(data.roomId).emit(socketKeys.FinishGame, response);
+            } else {
+                currentTable.currentPlayer = nextPlayer.id;
+                listServer.set(data.roomId, currentTable);
+                response.table = listServer.get(data.roomId);
+                io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
+            }
         }
     });
 
@@ -265,7 +273,6 @@ io.on(socketKeys.Connection, (socket) => {
 
     socket.on(socketKeys.Disconnect, () => {
         console.log('user disconnected');
-
     });
 });
 

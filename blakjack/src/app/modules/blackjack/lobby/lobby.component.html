@@ -1,38 +1,44 @@
 <div *ngIf="init">
     <mat-toolbar color="primary" >
-        <mat-toolbar-row>
+        <mat-toolbar-row style="height: 32px;" fxLayoutAlign="space-between center">
           <span>Black Jack - Table : {{ table.name }}</span>
+          <button mat-button (click)="onLeaveTable()">Quitter</button>
+        </mat-toolbar-row>
+        <mat-toolbar-row style="background-color: white; color: black; height: auto; height: 32px;" fxLayoutAlign="center center">
+          <span>{{ message }}</span>
         </mat-toolbar-row>
     </mat-toolbar>
     <br>
     <div fxLayout="row" fxLayoutAlign="space-around" *ngIf="showTable">
-      <div fxLayout="column" fxFlex="25" >
-        <div *ngFor="let user of table.users" class="other-player" fxLayout="column" fxLayoutAlign="stretch">
-          <div class="other-header" fxLayoutAlign="space-between">
-            <div>{{ user.name }}</div>
-          </div>
-          <div class="other-card-area"  fxlayout="row" fxLayoutAlign="center center">
-              <div class="other-card"
-              *ngFor="let card of user.hand"
-              style="background-image: url(../../../../assets/images/cards/{{card.name}}.jpg);"
-              fxlayout="row">
-              </div>
-          </div>
-
-          <div class="player-bet-info" fxlayout="row" fxLayoutAlign="center center">
-            Mise: {{user.currentBet}}
+      <div class="left_side" fxLayout="column">
+        <div class="other_player_list" fxLayout="row wrap" fxLayoutAlign="space-around">
+          <div class="other_player" *ngFor="let user of table.users" fxLayout="column" [ngClass]="{'hisTurn': user.id === table.currentPlayer}">
+            <div class="other_player_header" fxLayoutAlign="space-between center">
+              <div fxLayout="row" fxLayoutAlign="center center"><div class="s-icon p-{{user.icon}}"> </div><div>{{ user.name }}</div></div>
+              <div>21</div>
+            </div>
+            <div class="other-card-area" fxlayout="row" fxLayoutAlign="center center">
+                <div class="other-card"
+                  *ngFor="let card of user.hand"
+                  style="background-image: url(../../../../assets/images/cards/{{card.name}}.jpg);"
+                  fxlayout="row">
+                </div>
+            </div>
+            <div class="other_player_footer" fxlayout="row" fxLayoutAlign="center center">
+              Mise: {{user.currentBet}}
+            </div>
           </div>
         </div>
       </div>
-      <div fxLayout="column" fxFlex="66">
+      <div class="right_side" fxLayout="column">
         <div class="bank-area" fxlayout="row" fxLayoutAlign="center center">
           <div *ngFor="let card of table.bank.hand">
-            <div class="player-card"
+            <div class="bank_card"
             style="background-image: url(../../../../assets/images/cards/{{card.name}}.jpg);"
              *ngIf="card.visible"
               fxlayout="row">
               </div>
-              <div class="player-card"
+              <div class="bank_card"
               *ngIf="!card.visible"
               style="background-image: url(../../../../assets/images/cards/blue_back.jpg);"
               fxlayout="row">
@@ -45,7 +51,6 @@
             *ngFor="let card of player.hand"
             style="background-image: url(../../../../assets/images/cards/{{card.name}}.jpg);"
             fxlayout="row">
-              <!-- {{card.name}} -->
             </div>
           </div>
 
@@ -53,12 +58,10 @@
             Mise: {{player.currentBet}} - Credits: {{player.credits}} - Score: {{player.score}}
           </div>
 
-          <div class="player-action-area" fxLayout="row">
-            <button (click)="drawCard()" [disabled]="!enableDrawBtn">Piocher</button>
-            <button (click)="doubleBet()" [disabled]="!enableDoubleBtn">Doubler</button>
-            <button (click)="endRound()" [disabled]="!enableEndTurn" >Fin de tour</button>
-            <button (click)="onLeaveTable()">Quitter</button>
-
+          <div class="player-action-area" fxLayout="row" fxLayoutGap="20px">
+            <button mat-raised-button color="primary" (click)="drawCard()" [disabled]="!enableDrawBtn">Piocher</button>
+            <button mat-raised-button color="warn" (click)="doubleBet()" [disabled]="!enableDoubleBtn">Doubler</button>
+            <button mat-raised-button (click)="endRound()" [disabled]="!enableEndTurn">Fin de tour</button>
           </div>
         </div>
         <div *ngIf="showBet" class="player-area" fxLayout="column">
@@ -74,9 +77,6 @@
               </form>
               <button mat-raised-button color="primary" (click)="sendBet(bet.value)">Valider la mise</button>
           </div>
-          </div>
-          <div class="player-action-area" fxLayout="row">
-            <button (click)="onLeaveTable()">Quitter</button>
           </div>
         </div>
       </div>
@@ -105,7 +105,6 @@
       </div>
       <br>
       <button *ngIf="isAdmin" (click)="onStartGame()">Commencer</button>
-      <button (click)="onLeaveTable()">Quitter</button>
     </div>
 
 </div>
