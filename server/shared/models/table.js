@@ -30,6 +30,18 @@ class Table {
       this.status = 'F';
     }
 
+    isStarted() {
+      return this.status === 'S';
+    }
+
+    isBet() {
+      return this.status === 'B';
+    }
+
+    isFinished() {
+      return this.status === 'F';
+    }
+
     isPlayersAllBet() {
       for(const user of this.users) {
         if (user.currentBet == 0) { return false }
@@ -51,6 +63,17 @@ class Table {
 
     getPlayerHand(userId) {
       return this.users.find(u => u.id === userId).hand;
+    }
+
+    addPlayerInTable(player) {
+
+    }
+
+    hasPlayer(userId) {
+      if (this.users.find(u => u.id === userId)) {
+        return true;
+      }
+      return false;
     }
 
     clean() {

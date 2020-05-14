@@ -13,7 +13,7 @@ import { TableComponent } from './dialogTable/table.component';
   styleUrls: ['./lobby.component.scss']
 })
 export class LobbyComponent implements OnInit {
-
+  icon = 1;
   init = false;
   tableId = null;
   table = null;
@@ -25,6 +25,8 @@ export class LobbyComponent implements OnInit {
   showTable = false;
   showBet = false;
   canBetButton = false;
+
+  message = 'Welcome !';
 
   constructor(
     private route: ActivatedRoute,
@@ -39,6 +41,7 @@ export class LobbyComponent implements OnInit {
     }
 
   ngOnInit() {
+  this.icon = +localStorage.getItem('iconColor');
     if (this.socketService.socket) {
       this.aftersocketInit();
     } else {
@@ -83,11 +86,14 @@ export class LobbyComponent implements OnInit {
     this.enableDrawBtn = data.isShownDrawButton && isMyTurn;
     this.enableEndTurn = isMyTurn && this.table.status === 'S';
     this.enableDoubleBtn = data.isShownDoubleButton && isMyTurn;
-    console.log(data);
+    console.log("data MANAGE UI ", data);
+    console.log("isMyTurn", isMyTurn);
+    console.log("this.player.id", this.player.id);
+    console.log("data.userId", data.userId);
     this.showBet = this.table.status === 'B' && this.player.currentBet === 0;
     this.canBetButton = this.showBet;
 
-    if (this.table.id.includes(this.socketService.getConnectionId())) {
+    if (this.table.id.includes(this.socketService.getConnectionId()) || this.table.adminId === this.socketService.getConnectionId()) {
       this.isAdmin = true;
     }
   }
@@ -148,10 +154,7 @@ export class LobbyComponent implements OnInit {
   }
 
   showRoundPlayer(user: string) {
-    this.snackBar.open('A ' + user + ' de jouer !', null, {
-      duration: 1500,
-      verticalPosition: 'top'
-    });
+    this.message = 'A ' + user + ' de jouer !';
   }
 
   showBetPlayer(user: string, betMoney: string) {
@@ -195,18 +198,14 @@ export class LobbyComponent implements OnInit {
   private setupSocketConnection() {
 
     this.socketService.listen(SocketKey.JoinTable).subscribe((data: any) => {
-      console.log(data);
-      if (data.status === 'success') {
-        this.manageUI(data);
-        this.init = true;
-      }
+      console.log(data)
+      this.manageUI(data);
+      this.init = true;
     });
 
     this.socketService.listen(SocketKey.PlayerJoin).subscribe((data: any) => {
       console.log(data);
-      if (data.status === 'success') {
-        this.manageUI(data);
-      }
+      this.manageUI(data);
     });
 
     this.socketService.listen(SocketKey.PlayerLeave).subscribe((data: any) => {

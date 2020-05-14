@@ -20,6 +20,7 @@ import {MatDialogModule} from '@angular/material/dialog';
 import {MatMenuModule} from '@angular/material/menu';
 import { TableComponent } from './lobby/dialogTable/table.component';
 import { MatTableModule } from '@angular/material/table';
+import {MatGridListModule} from '@angular/material/grid-list';
 
 const materials = [
   MatListModule,
@@ -31,7 +32,8 @@ const materials = [
   FormsModule,
   MatDialogModule,
   MatMenuModule,
-  MatTableModule
+  MatTableModule,
+  MatGridListModule
 ];
 
 @NgModule({
