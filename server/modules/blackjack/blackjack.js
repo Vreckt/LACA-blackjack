@@ -1,4 +1,6 @@
 const ResponseBJAction = require('../../shared/models/response/responseBlackJack');
+const Table = require('../../shared/models/table')
+const { decks } = require('../../cards');
 
 exports.drawCard = (cardDraw) => {
     const card = {
@@ -8,18 +10,14 @@ exports.drawCard = (cardDraw) => {
         value: 0
     };
     if (['A', 'J', 'Q', 'K'].includes(cardDraw[0].rank.shortName)) {
-        if (cardDraw[0].rank.shortName === 'A') {
-            card.value = 11;
-        } else {
-            card.value = 10;
-        }
+        card.value = cardDraw[0].rank.shortName === 'A' ? 11 : 10;
     } else {
         card.value = +card.shortName;
     }
     return card;
 };
 
-exports.manageBlackjack = (listCards, player) => {
+exports.calculateHand = (listCards, player) => {
     let point = 0;
     let isBlackJack = false;
     let isWin = false;
@@ -50,9 +48,15 @@ exports.manageBlackjack = (listCards, player) => {
     response.isBlackJack = isBlackJack;
     response.isShownDrawButton = player ? (point < 21) && !player.hasDouble : false;
     response.isShownDoubleButton = (listCards.length < 3) && response.isShownDrawButton;
-
     return response;
 };
+
+exports.createResponse = (player, table) => {
+    const response = this.calculateHand(player.hand, player);
+    response.table = table;
+    response.drawCard = player.hand[player.hand.length - 1];
+    return response
+}
 
 exports.manageBet = (table, playerId) => {
     const response = new ResponseBJAction();
@@ -68,7 +72,7 @@ exports.manageEndGame = (table) => {
     console.log(bank);
     // Check if users win
     for(const user of table.users) {
-        let tmpResponse = this.manageBlackjack(user.hand, user);
+        let tmpResponse = this.calculateHand(user.hand, user);
         if (tmpResponse.isWin) {
             listOfResponse.push(tmpResponse);
         }

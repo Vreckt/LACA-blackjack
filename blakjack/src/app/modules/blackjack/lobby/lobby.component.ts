@@ -113,7 +113,12 @@ export class LobbyComponent implements OnInit {
   }
 
   drawCard() {
-    this.socketService.socket.emit(SocketKey.DrawCard, ({
+    // this.socketService.socket.emit(SocketKey.DrawCard, ({
+    //   roomId: this.tableId,
+    //   userId: this.player.id
+    // }));
+    this.socketService.socket.emit('Action', ({
+      actionKeys: SocketKey.DrawCard,
       roomId: this.tableId,
       userId: this.player.id
     }));
