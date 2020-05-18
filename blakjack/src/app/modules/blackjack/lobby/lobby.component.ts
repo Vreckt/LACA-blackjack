@@ -77,11 +77,11 @@ export class LobbyComponent implements OnInit {
   private manageUI(data) {
     this.table = JSON.parse(JSON.stringify(data.table));
     this.showTable = this.table.status === 'S' || this.table.status === 'B' || this.table.status === 'F';
-    const playerIndex = this.table.users.findIndex(user =>
+    const playerIndex = this.table.players.findIndex(user =>
       user.id === this.socketService.getConnectionId() && user.name === localStorage.getItem('username')
     );
     console.log(playerIndex);
-    this.player = this.table.users.splice(playerIndex, 1)[0];
+    this.player = this.table.players.splice(playerIndex, 1)[0];
     const isMyTurn = this.player.id === data.userId;
     this.enableDrawBtn = data.isShownDrawButton && isMyTurn;
     this.enableEndTurn = isMyTurn && this.table.status === 'S';
@@ -172,7 +172,7 @@ export class LobbyComponent implements OnInit {
   private manageEndGame(data) {
     console.log("manageEndGame");
     const listUsers = [];
-    for (const user of data.table.users) {
+    for (const user of data.table.players) {
       listUsers.push({
         username: user.name,
         point: user.score,
@@ -217,7 +217,7 @@ export class LobbyComponent implements OnInit {
       data.userId = data.table.currentPlayer;
       this.manageUI(data);
       console.log(data);
-      // this.showRoundPlayer(data.table.users.find(u => u.id === data.table.currentPlayer).name);
+      // this.showRoundPlayer(data.table.players.find(u => u.id === data.table.currentPlayer).name);
     });
 
     this.socketService.listen(SocketKey.BankShowCard).subscribe((data: any) => {
@@ -231,7 +231,7 @@ export class LobbyComponent implements OnInit {
     this.socketService.listen(SocketKey.PlayerBet).subscribe((data: any) => {
       console.log(data);
       this.manageUI(data);
-      const tmpUser = data.table.users.find(u => u.id === data.userId);
+      const tmpUser = data.table.players.find(u => u.id === data.userId);
       console.log(tmpUser);
       console.log(data.userId);
       if (tmpUser) {
@@ -242,7 +242,7 @@ export class LobbyComponent implements OnInit {
     this.socketService.listen(SocketKey.PlayerTurn).subscribe((data: any) => {
       console.log(data);
       this.manageUI(data);
-      const tmpuser = data.table.users.find(u => u.id === data.userId);
+      const tmpuser = data.table.players.find(u => u.id === data.userId);
       console.log(tmpuser);
       this.showRoundPlayer(tmpuser.name);
     });

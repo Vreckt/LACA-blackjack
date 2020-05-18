@@ -12,7 +12,7 @@
     <div fxLayout="row" fxLayoutAlign="space-around" *ngIf="showTable">
       <div class="left_side" fxLayout="column">
         <div class="other_player_list" fxLayout="row wrap" fxLayoutAlign="space-around">
-          <div class="other_player" *ngFor="let user of table.users" fxLayout="column" [ngClass]="{'hisTurn': user.id === table.currentPlayer}">
+          <div class="other_player" *ngFor="let user of table.players" fxLayout="column" [ngClass]="{'hisTurn': user.id === table.currentPlayer}">
             <div class="other_player_header" fxLayoutAlign="space-between center">
               <div fxLayout="row" fxLayoutAlign="center center"><div class="s-icon p-{{user.icon}}"> </div><div>{{ user.name }}</div></div>
               <div>21</div>
@@ -91,7 +91,7 @@
           <div fxLayoutAlign="center">{{ player.name }}</div>
         </div>
 
-        <div *ngFor="let user of table.users" fxLayout="column" fxLayoutAlign="space-between" class="lobby-user">
+        <div *ngFor="let user of table.players" fxLayout="column" fxLayoutAlign="space-between" class="lobby-user">
             <div class="lobby-user-header" fxLayout="row" fxLayoutAlign="end">
               <mat-icon *ngIf="isAdmin" (click)="onRemovePlayer(user.id)" color="primary">close</mat-icon>
             </div>
