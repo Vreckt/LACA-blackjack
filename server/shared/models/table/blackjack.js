@@ -7,20 +7,15 @@ const Card = require('../../../shared/models/card');
 
 class BlackjackTable extends Table {
 
-    constructor(id, name, difficulty) {
+    constructor(id, name, difficulty, user) {
         super(id, name, tableType.Blackjack),
         this.difficulty = difficulty,
         this.bank = new Bank();
+        this.addPlayerInTable(user, true);
     }
 
     drawCard(playerIndex, isBank = false) {
-        const cardDraw = this.deck.draw(1);
-        const card = new Card(cardDraw[0].rank.shortName + cardDraw[0].suit.name, cardDraw[0].rank.shortName, true, 0);
-        if (['A', 'J', 'Q', 'K'].includes(cardDraw[0].rank.shortName)) {
-            card.value = cardDraw[0].rank.shortName === 'A' ? 11 : 10;
-        } else {
-            card.value = +card.shortName;
-        }
+        const card = this.drawCardFromDeck(1)[0];
         if (isBank) {
             this.bank.hand.push(card);
             return this.createResponse(this.bank);
@@ -31,15 +26,7 @@ class BlackjackTable extends Table {
     }
 
     bankDrawCard() {
-        const cardDraw = this.deck.draw(1);
-        const card = new Card(cardDraw[0].rank.shortName + cardDraw[0].suit.name, cardDraw[0].rank.shortName, true, 0);
-        if (['A', 'J', 'Q', 'K'].includes(cardDraw[0].rank.shortName)) {
-            card.value = cardDraw[0].rank.shortName === 'A' ? 11 : 10;
-        } else {
-            card.value = +card.shortName;
-        }
-        this.bank.hand.push(card);
-        return card;
+        return this.drawCardFromDeck(1)[0];
     }
 
     calculateHand(player) {
@@ -79,9 +66,12 @@ class BlackjackTable extends Table {
     };
     
     createResponse(player) {
-        const response = this.calculateHand(player);
+        let response = new ResponseBJAction();
+        if (this.isStarted()) {
+            response = this.calculateHand(player);
+            response.drawCard = player.hand[player.hand.length - 1];
+        }
         response.table = this;
-        response.drawCard = player.hand[player.hand.length - 1];
      
         return response
     }

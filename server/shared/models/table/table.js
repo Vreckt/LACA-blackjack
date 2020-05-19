@@ -1,3 +1,6 @@
+const Card = require('../card');
+
+
 class Table {
   constructor(id, name, type = 0) {
     this.id = id;
@@ -47,7 +50,7 @@ class Table {
     if (!this.hasPlayer(player.id)) {
       this.players.push(player);
       if (isAdmin) {
-        this.adminId = player.userId;
+        this.adminId = player.id;
       }
     }
   }
@@ -84,6 +87,21 @@ class Table {
 
   getCurrentPlayerTurn() {
     return this.currentPlayer;
+  }
+
+  drawCardFromDeck(nbCards) {
+    const cards = this.deck.draw(nbCards);
+    let cardList = [];
+    for (const cardDraw of cards) {
+      const card = new Card(cardDraw.rank.shortName + cardDraw.suit.name, cardDraw.rank.shortName, true, 0);
+      if (['A', 'J', 'Q', 'K'].includes(cardDraw.rank.shortName)) {
+        card.value = cardDraw.rank.shortName === 'A' ? 11 : 10;
+      } else {
+          card.value = +card.shortName;
+      }
+      cardList.push(card);
+    }
+    return cardList;
   }
 }
 
