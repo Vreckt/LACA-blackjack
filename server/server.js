@@ -24,17 +24,17 @@ server.listen(port, () => {
 
 // sockets
 io.on(socketKeys.Connection, (socket) => {
-    let user = new Player(socket.conn.id, socket.handshake.query.username, socket.handshake.query.iconColor);
-    if (listPlayers.find(u =>  u.id === socket.handshake.query.oldSocket)) {
+    let player = new Player(socket.conn.id, socket.handshake.query.username, socket.handshake.query.iconColor);
+    if (listPlayers.find(p =>  p.id === socket.handshake.query.oldSocket)) {
         socket.conn.id = socket.handshake.query.oldSocket;
-        user.id = socket.handshake.query.oldSocket;
+        player.id = socket.handshake.query.oldSocket;
         for (const usr of listPlayers) {
             if (usr.id === socket.handshake.query.oldSocket && usr.name === socket.handshake.query.username) {
-                usr.id = user.id;
+                usr.id = player.id;
             }
         }
     } else {
-        listPlayers.push(user);
+        listPlayers.push(player);
     }
 
     socket.emit(socketKeys.Connected, {
@@ -43,9 +43,9 @@ io.on(socketKeys.Connection, (socket) => {
     });
 
     socket.on(socketKeys.NewLobby, data => {
-        const roomId = createRoomId(32) + user.id;
+        const roomId = createRoomId(32) + player.id;
         if (!listServer.has(roomId)) {
-            const table = new BlackjackTable(roomId, data.roomName, 1, user);
+            const table = new BlackjackTable(roomId, data.roomName, 1, player);
             listServer.set(roomId, table);
             io.to(socket.id).emit(socketKeys.NewLobby, { roomId: roomId, roomName: data.roomName});
             socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
@@ -59,8 +59,8 @@ io.on(socketKeys.Connection, (socket) => {
         if (listServer.has(data.roomId)) {
             let table = listServer.get(data.roomId);
             response = table.createResponse(table.players.find(p => p.id === table.currentPlayer));
-            if (!table.hasPlayer(user.id)){
-                table.addPlayerInTable(user);
+            if (!table.hasPlayer(player.id)){
+                table.addPlayerInTable(player);
                 socket.to(data.roomId).emit(socketKeys.PlayerJoin, response);
             }
             socket.join(data.roomId);
@@ -91,14 +91,14 @@ io.on(socketKeys.Connection, (socket) => {
                 listServer.delete(data.roomId);
                 socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
             } else {
-                const { nextPlayer, nextPlayerIndex } = table.getNextPlayer(user.id);
-                if (table.currentPlayer === user.id && nextPlayerIndex < table.players.length) {
+                const { nextPlayer, nextPlayerIndex } = table.getNextPlayer(player.id);
+                if (table.currentPlayer === player.id && nextPlayerIndex < table.players.length) {
                     table.currentPlayer = nextPlayer.id;
                     response = table.createResponse(nextPlayer);
                 } else {
                     response = table.createResponse(table.players.find(p => p.id === table.currentPlayer));
                 }
-                table.removePlayer(user);
+                table.removePlayer(player);
             }
             socket.to(data.roomId).emit(socketKeys.PlayerLeave, response);
         } else {
@@ -118,7 +118,7 @@ io.on(socketKeys.Connection, (socket) => {
             });
             setTimeout(() => {
                 table.betTable();
-                const response = table.manageBet(user.id);
+                const response = table.manageBet();
                 io.in(data.roomId).emit(socketKeys.PlayerBet, response);
             }, 100);
         } else {
@@ -131,8 +131,8 @@ io.on(socketKeys.Connection, (socket) => {
             switch (data.actionKeys) {
                 case socketKeys.DrawCard:
                     let table = listServer.get(data.roomId);
-                    const playerIndex = table.players.findIndex(u => u.id === data.userId);
-                    if (table.hasPlayer(data.userId)) {
+                    const playerIndex = table.players.findIndex(p => p.id === data.playerId);
+                    if (table.hasPlayer(data.playerId)) {
                         response = table.drawCard(playerIndex);
                         table.setScoreToPlayer(playerIndex, response.point);
                         io.in(data.roomId).emit(socketKeys.DrawCard, response);
@@ -148,7 +148,7 @@ io.on(socketKeys.Connection, (socket) => {
 
     socket.on(socketKeys.PlayerBet, (data) => {
         let table = listServer.get(data.roomId);
-        var currentPlayerIndex =table.players.findIndex(p => p.id === data.userId);
+        var currentPlayerIndex =table.players.findIndex(p => p.id === data.playerId);
         if (data.betMoney > 0 && data.betMoney <= table.players[currentPlayerIndex].credits) {
             table.players[currentPlayerIndex].credits -= data.betMoney;
             table.players[currentPlayerIndex].currentBet = data.betMoney;
@@ -182,17 +182,15 @@ io.on(socketKeys.Connection, (socket) => {
 
     socket.on(socketKeys.PlayerDouble, (data) => {
         let table = listServer.get(data.roomId);
-        var currentPlayerIndex = table.players.findIndex(p => p.id === data.userId);
+        var currentPlayerIndex = table.players.findIndex(p => p.id === data.playerId);
         var currentPlayer = table.players[currentPlayerIndex];
         if (currentPlayer.currentBet * 2 <= currentPlayer.credits) {
             table.players[currentPlayerIndex].credits -= currentPlayer.currentBet;
             table.players[currentPlayerIndex].currentBet = currentPlayer.currentBet * 2;
             table.players[currentPlayerIndex].hasDouble = true;
-            let response = table.createResponse(table.players[currentPlayerIndex]);
-            response.table = table;
+            let response = table.drawCard(currentPlayerIndex);
             listServer.set(data.roomId, table);
             io.in(data.roomId).emit(socketKeys.PlayerBet, response);
-            drawCard(data, user, true);
         } else {
             console.log("Le joueur ne peut pas doubler, il n'a pas assez de thunes")
         }
@@ -200,7 +198,7 @@ io.on(socketKeys.Connection, (socket) => {
 
     socket.on(socketKeys.PlayerEnd, (data) => {
         var currentTable = listServer.get(data.roomId);
-        if (currentTable.players.findIndex(u => u.id === data.userId) === (currentTable.players.length - 1)) {
+        if (currentTable.players.findIndex(p => p.id === data.playerId) === (currentTable.players.length - 1)) {
             let response = currentTable.calculateHand(currentTable.bank);
             currentTable.bank.hand[1].visible = true;
             currentTable.bank.point = response.point;
@@ -242,7 +240,7 @@ io.on(socketKeys.Connection, (socket) => {
             }
 
         } else {
-            const { nextPlayer, nextPlayerIndex } = currentTable.getNextPlayer(user.id);
+            const { nextPlayer, nextPlayerIndex } = currentTable.getNextPlayer(player.id);
             const response = currentTable.calculateHand(nextPlayer);
             response.table = currentTable;
             if (nextPlayer.hand.length === 0) {
@@ -262,7 +260,7 @@ io.on(socketKeys.Connection, (socket) => {
     });
 
     socket.on(socketKeys.Disconnect, () => {
-        console.log('user disconnected');
+        console.log('player disconnected');
     });
 });
 

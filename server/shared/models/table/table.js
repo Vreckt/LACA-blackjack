@@ -13,7 +13,7 @@ class Table {
     this.adminId = '';
   }
 
-  getUser() { return this.players.slice();}
+  getPlayers() { return this.players.slice(); }
 
   betTable() { this.status = 'B';}
   startedTable() { this.status = 'S'; }
@@ -23,24 +23,24 @@ class Table {
   isFinished() { return this.status === 'F'; }
 
   isPlayersAllBet() {
-    for (const user of this.players) {
-      if (user.currentBet == 0) { return false }
+    for (const player of this.players) {
+      if (player.currentBet == 0) { return false }
     }
     return true
   }
 
-  getNextPlayer(userId) {
-    const nextPlayerIndex = this.players.findIndex(u => u.id === userId) + 1;
+  getNextPlayer(playerId) {
+    const nextPlayerIndex = this.players.findIndex(p => p.id === playerId) + 1;
     const nextPlayer = this.players[nextPlayerIndex];
     return { nextPlayer, nextPlayerIndex };
   }
 
-  getPlayerHand(userId) {
-    return this.players.find(u => u.id === userId).hand;
+  getPlayerHand(playerId) {
+    return this.players.find(p => p.id === playerId).hand;
   }
 
-  hasPlayer(userId) {
-    if (this.players.find(u => u.id === userId)) {
+  hasPlayer(playerId) {
+    if (this.players.find(p => p.id === playerId)) {
       return true;
     }
     return false;
@@ -55,19 +55,15 @@ class Table {
     }
   }
 
-  removePlayerByUserId(userId) {
-    const delUserIndex = this.players.findIndex(u => u.id === userId);
-    const delUser = this.players.splice(delUserIndex, 1);
-    return { delUser, delUserIndex };
-  }
-
   removePlayer(player) {
     if (this.hasPlayer(player.id)) {
       if (this.adminId === player.id) {
         const { nextPlayer } = this.getNextPlayer(player.id);
         this.adminId = nextPlayer.id;
       }
-      return this.players.splice(this.players.findIndex(u => u.id === player.id), 1);
+      
+    return this.players.splice(this.players.findIndex(p => p.id === player.id), 1);
+
     } else {
       return null;
     }
@@ -81,8 +77,8 @@ class Table {
     this.players[index].score = score;
   }
 
-  setCurrentPlayerTurn(pId) {
-    this.currentPlayer = pId;
+  setCurrentPlayerTurn(playerId) {
+    this.currentPlayer = playerId;
   }
 
   getCurrentPlayerTurn() {

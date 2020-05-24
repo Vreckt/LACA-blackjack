@@ -7,11 +7,11 @@ const Card = require('../../../shared/models/card');
 
 class BlackjackTable extends Table {
 
-    constructor(id, name, difficulty, user) {
+    constructor(id, name, difficulty, player) {
         super(id, name, tableType.Blackjack),
         this.difficulty = difficulty,
         this.bank = new Bank();
-        this.addPlayerInTable(user, true);
+        this.addPlayerInTable(player, true);
     }
 
     drawCard(playerIndex, isBank = false) {
@@ -56,7 +56,7 @@ class BlackjackTable extends Table {
             }
         }
         const response = new ResponseBJAction();
-        response.userId = player ? player.id : null;
+        response.playerId = player ? player.id : null;
         response.point = point;
         response.isWin = isWin;
         response.isBlackJack = isBlackJack;
@@ -87,7 +87,7 @@ class BlackjackTable extends Table {
     manageBet(playerId) {
         const response = new ResponseBJAction();
         response.table = this;
-        response.userId = playerId;
+        response.playerId = playerId;
         return response;
     }
     
@@ -95,9 +95,9 @@ class BlackjackTable extends Table {
         let bank = this.bank;
         var listOfResponse = [];
         console.log(bank);
-        // Check if users win
-        for(const user of this.players) {
-            let tmpResponse = this.calculateHand(user);
+        // Check if players win
+        for(const player of this.players) {
+            let tmpResponse = this.calculateHand(player);
             if (tmpResponse.isWin) {
                 listOfResponse.push(tmpResponse);
             }
@@ -112,20 +112,20 @@ class BlackjackTable extends Table {
                 if (response.point > bank.point) {
                     console.log('gagné a plat de couture');
     
-                    this.players.find(u => u.id === response.userId).credits += this.players.find(u => u.id === response.userId).currentBet * (response.isBlackJack ? 2.5 : 2);
+                    this.players.find(p => p.id === response.playerId).credits += this.players.find(p => p.id === response.playerId).currentBet * (response.isBlackJack ? 2.5 : 2);
                 } else if (response.point == bank.point) {
                     console.log('égalité');
     
                     if (response.isBlackJack !== bank.isBlackJack) {
                         if (response.isBlackJack) {
                             console.log('2.5');
-                            this.players.find(u => u.id === response.userId).credits += this.players.find(u => u.id === response.userId).currentBet * 2.5;
+                            this.players.find(p => p.id === response.playerId).credits += this.players.find(p => p.id === response.playerId).currentBet * 2.5;
                         }
                     } else {
                         if (response.isBlackJack) {
                             console.log('only bet');
     
-                            this.players.find(u => u.id === response.userId).credits += this.players.find(u => u.id === response.userId).currentBet;
+                            this.players.find(p => p.id === response.playerId).credits += this.players.find(p => p.id === response.playerId).currentBet;
                         }
                     }
                 }
@@ -134,7 +134,7 @@ class BlackjackTable extends Table {
             for (const response of listOfResponse) {
                 console.log('dealer has been defeated');
     
-                this.players.find(u => u.id === response.userId).credits += this.players.find(u => u.id === response.userId).currentBet * (response.isBlackJack ? 2.5 : 2);
+                this.players.find(p => p.id === response.playerId).credits += this.players.find(p => p.id === response.playerId).currentBet * (response.isBlackJack ? 2.5 : 2);
             }
         }
         

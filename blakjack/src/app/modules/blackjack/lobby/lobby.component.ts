@@ -77,19 +77,19 @@ export class LobbyComponent implements OnInit {
   private manageUI(data) {
     this.table = JSON.parse(JSON.stringify(data.table));
     this.showTable = this.table.status === 'S' || this.table.status === 'B' || this.table.status === 'F';
-    const playerIndex = this.table.players.findIndex(user =>
-      user.id === this.socketService.getConnectionId() && user.name === localStorage.getItem('username')
+    const playerIndex = this.table.players.findIndex(player =>
+      player.id === this.socketService.getConnectionId() && player.name === localStorage.getItem('username')
     );
     console.log(playerIndex);
     this.player = this.table.players.splice(playerIndex, 1)[0];
-    const isMyTurn = this.player.id === data.userId;
+    const isMyTurn = this.player.id === data.playerId;
     this.enableDrawBtn = data.isShownDrawButton && isMyTurn;
     this.enableEndTurn = isMyTurn && this.table.status === 'S';
     this.enableDoubleBtn = data.isShownDoubleButton && isMyTurn;
     console.log("data MANAGE UI ", data);
     console.log("isMyTurn", isMyTurn);
     console.log("this.player.id", this.player.id);
-    console.log("data.userId", data.userId);
+    console.log("data.playerId", data.playerId);
     this.showBet = this.table.status === 'B' && this.player.currentBet === 0;
     this.canBetButton = this.showBet;
 
@@ -115,12 +115,12 @@ export class LobbyComponent implements OnInit {
   drawCard() {
     // this.socketService.socket.emit(SocketKey.DrawCard, ({
     //   roomId: this.tableId,
-    //   userId: this.player.id
+    //   playerId: this.player.id
     // }));
-    this.socketService.socket.emit('Action', ({
+    this.socketService.socket.emit(SocketKey.Action, ({
       actionKeys: SocketKey.DrawCard,
       roomId: this.tableId,
-      userId: this.player.id
+      playerId: this.player.id
     }));
   }
 
@@ -132,7 +132,7 @@ export class LobbyComponent implements OnInit {
       console.log(betMoney);
       this.socketService.socket.emit(SocketKey.PlayerBet, {
         roomId: this.tableId,
-        userId: this.player.id,
+        playerId: this.player.id,
         betMoney
       });
     }
@@ -142,14 +142,14 @@ export class LobbyComponent implements OnInit {
     this.enableDrawBtn = false;
     this.socketService.socket.emit(SocketKey.PlayerDouble, {
       roomId: this.tableId,
-      userId: this.player.id
+      playerId: this.player.id
     });
   }
 
   endRound() {
     this.socketService.socket.emit(SocketKey.PlayerEnd, {
       roomId: this.tableId,
-      userId: this.player.id
+      playerId: this.player.id
     });
   }
 
@@ -158,12 +158,12 @@ export class LobbyComponent implements OnInit {
     this.router.navigate(['../'], { relativeTo: this.route });
   }
 
-  showRoundPlayer(user: string) {
-    this.message = 'A ' + user + ' de jouer !';
+  showRoundPlayer(username: string) {
+    this.message = 'A ' + username + ' de jouer !';
   }
 
-  showBetPlayer(user: string, betMoney: string) {
-    this.snackBar.open(user + ' a misé ' + betMoney + '€', null, {
+  showBetPlayer(username: string, betMoney: string) {
+    this.snackBar.open(username + ' a misé ' + betMoney + '€', null, {
       duration: 1500,
       verticalPosition: 'top'
     });
@@ -171,13 +171,13 @@ export class LobbyComponent implements OnInit {
 
   private manageEndGame(data) {
     console.log("manageEndGame");
-    const listUsers = [];
-    for (const user of data.table.players) {
-      listUsers.push({
-        username: user.name,
-        point: user.score,
+    const listPlayers = [];
+    for (const player of data.table.players) {
+      listPlayers.push({
+        username: player.name,
+        point: player.score,
         status: false,
-        credits: +user.currentBet
+        credits: +player.currentBet
       });
     }
     const dialog = this.dialog.open(TableComponent, {
@@ -185,7 +185,7 @@ export class LobbyComponent implements OnInit {
       disableClose: true,
       data :
       {
-        score: listUsers,
+        score: listPlayers,
         admin: this.isAdmin
       }
     });
@@ -214,10 +214,10 @@ export class LobbyComponent implements OnInit {
     });
 
     this.socketService.listen(SocketKey.PlayerLeave).subscribe((data: any) => {
-      data.userId = data.table.currentPlayer;
+      data.playerId = data.table.currentPlayer;
       this.manageUI(data);
       console.log(data);
-      // this.showRoundPlayer(data.table.players.find(u => u.id === data.table.currentPlayer).name);
+      // this.showRoundPlayer(data.table.players.find(p => p.id === data.table.currentPlayer).name);
     });
 
     this.socketService.listen(SocketKey.BankShowCard).subscribe((data: any) => {
@@ -231,20 +231,20 @@ export class LobbyComponent implements OnInit {
     this.socketService.listen(SocketKey.PlayerBet).subscribe((data: any) => {
       console.log(data);
       this.manageUI(data);
-      const tmpUser = data.table.players.find(u => u.id === data.userId);
-      console.log(tmpUser);
-      console.log(data.userId);
-      if (tmpUser) {
-        this.showBetPlayer(tmpUser.name, tmpUser.currentBet);
+      const tmpPlayer = data.table.players.find(p => p.id === data.playerId);
+      console.log(tmpPlayer);
+      console.log(data.playerId);
+      if (tmpPlayer) {
+        this.showBetPlayer(tmpPlayer.name, tmpPlayer.currentBet);
       }
     });
 
     this.socketService.listen(SocketKey.PlayerTurn).subscribe((data: any) => {
       console.log(data);
       this.manageUI(data);
-      const tmpuser = data.table.players.find(u => u.id === data.userId);
-      console.log(tmpuser);
-      this.showRoundPlayer(tmpuser.name);
+      const tmpPlayer = data.table.players.find(p => p.id === data.playerId);
+      console.log(tmpPlayer);
+      this.showRoundPlayer(tmpPlayer.name);
     });
 
     this.socketService.listen(SocketKey.StartGame).subscribe((data: any) => {

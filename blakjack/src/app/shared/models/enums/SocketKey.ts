@@ -32,4 +32,6 @@ export enum SocketKey {
 
     // Others
     Trigger = 'Trigger',
+    Error = 'Error',
+    Action = 'Action'
 }
