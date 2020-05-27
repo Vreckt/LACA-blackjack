@@ -15,11 +15,11 @@ export class SocketBlackJackService {
   constructor() { }
 
   connectToSocket() {
-    const user = localStorage.getItem('username');
+    const username = localStorage.getItem('username');
     const iconColor = localStorage.getItem('iconColor');
     this.socket = io(environment.SOCKET_ENDPOINT, {
       query: {
-        username: user,
+        username: username,
         iconColor: +iconColor,
         token: 'cde',
         oldSocket: this.getConnectionId(),

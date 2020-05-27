@@ -32,7 +32,8 @@ const socketKeys = {
     
     // Others
     Trigger: 'Trigger',
-    Error: 'Error'
+    Error: 'Error',
+    Action: 'Action'
 }
 
 

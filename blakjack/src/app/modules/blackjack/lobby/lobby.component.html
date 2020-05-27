@@ -12,20 +12,20 @@
     <div fxLayout="row" fxLayoutAlign="space-around" *ngIf="showTable">
       <div class="left_side" fxLayout="column">
         <div class="other_player_list" fxLayout="row wrap" fxLayoutAlign="space-around">
-          <div class="other_player" *ngFor="let user of table.users" fxLayout="column" [ngClass]="{'hisTurn': user.id === table.currentPlayer}">
+          <div class="other_player" *ngFor="let player of table.players" fxLayout="column" [ngClass]="{'hisTurn': player.id === table.currentPlayer}">
             <div class="other_player_header" fxLayoutAlign="space-between center">
-              <div fxLayout="row" fxLayoutAlign="center center"><div class="s-icon p-{{user.icon}}"> </div><div>{{ user.name }}</div></div>
+              <div fxLayout="row" fxLayoutAlign="center center"><div class="s-icon p-{{player.icon}}"> </div><div>{{ player.name }}</div></div>
               <div>21</div>
             </div>
             <div class="other-card-area" fxlayout="row" fxLayoutAlign="center center">
                 <div class="other-card"
-                  *ngFor="let card of user.hand"
+                  *ngFor="let card of player.hand"
                   style="background-image: url(../../../../assets/images/cards/{{card.name}}.jpg);"
                   fxlayout="row">
                 </div>
             </div>
             <div class="other_player_footer" fxlayout="row" fxLayoutAlign="center center">
-              Mise: {{user.currentBet}}
+              Mise: {{player.currentBet}}
             </div>
           </div>
         </div>
@@ -83,7 +83,7 @@
     </div>
     <div fxLayout="column" fxLayoutAlign="center center" *ngIf="!showTable">
       <div fxLayout="row wrap" fxLayoutAlign="space-between" fxLayoutGap="15px">
-        <div fxLayout="column" fxLayoutAlign="space-between" class="lobby-user">
+        <div fxLayout="column" fxLayoutAlign="space-between" class="lobby-player">
           <div></div>
           <div  fxLayoutAlign="center">
             <mat-icon color="primary">person</mat-icon>
@@ -91,15 +91,15 @@
           <div fxLayoutAlign="center">{{ player.name }}</div>
         </div>
 
-        <div *ngFor="let user of table.users" fxLayout="column" fxLayoutAlign="space-between" class="lobby-user">
-            <div class="lobby-user-header" fxLayout="row" fxLayoutAlign="end">
-              <mat-icon *ngIf="isAdmin" (click)="onRemovePlayer(user.id)" color="primary">close</mat-icon>
+        <div *ngFor="let player of table.players" fxLayout="column" fxLayoutAlign="space-between" class="lobby-player">
+            <div class="lobby-player-header" fxLayout="row" fxLayoutAlign="end">
+              <mat-icon *ngIf="isAdmin" (click)="onRemovePlayer(player.id)" color="primary">close</mat-icon>
             </div>
             <div  fxLayoutAlign="center">
               <mat-icon color="primary">person</mat-icon>
 
             </div>
-            <div fxLayoutAlign="center">{{ user.name }}</div>
+            <div fxLayoutAlign="center">{{ player.name }}</div>
         </div>
 
       </div>

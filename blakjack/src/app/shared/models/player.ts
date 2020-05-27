@@ -1,4 +1,4 @@
-export class User {
+export class Player {
     // Add others parameters if needed later
     id: string;
     name: string;

@@ -100,7 +100,7 @@
   background-color: #ffeb3b;
 }
 
-.lobby-user {
+.lobby-player {
     color: white;
     width: 100px;
     height: 120px;
@@ -108,12 +108,10 @@
     border: 1px solid white;
 }
 
-.lobby-user {
+.lobby-player {
     color: white;
     padding: 1% 1% 0 1%;
-}
-
-  
+}  
   
 @media screen and (max-width: 1200px) {
     .other_player {

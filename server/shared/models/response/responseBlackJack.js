@@ -1,6 +1,6 @@
 
 class ResponseBJAction {
-    userId = null;
+    playerId = null;
     cardDraw = null;
     point = null;
     isWin = null;
