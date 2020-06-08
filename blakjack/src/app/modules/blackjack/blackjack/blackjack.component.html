@@ -1,49 +1,53 @@
-<mat-toolbar color="primary">
-    <mat-toolbar-row fxLayoutAlign="space-between center">
-        <span>Black Jack</span>
-        <div fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="10px">
-            <div class="s-icon p-{{icon}}"></div>
-            <button mat-button 
-            [matMenuTriggerFor]="menu"
-            fxLayout="row"
-            fxLayoutAlign="center center"><span>{{ username }}</span></button>
-            <mat-menu #menu="matMenu">
-                <button mat-menu-item><mat-icon>exit_to_app</mat-icon> Leave</button>
-            </mat-menu>
-        </div>
-    </mat-toolbar-row>
-</mat-toolbar>
 <div class="container" fxLayout="row" *ngIf="username">
-    <div class="list-server" *ngIf="listTables">
-        <mat-list role="list">
-            <mat-list-item role="listitem" *ngFor="let table of listTables; let i of index">
-                <div class="item" fxLayout="row" fxLayoutAlign="space-between center">
-                    <div>{{ table.name }}</div>
-                    <button mat-icon-button aria-label="join server" (click)="joinTable(table)">
-                        <mat-icon>add</mat-icon>
-                    </button>
-                </div>
-                <mat-divider [inset]="true" color="primary" class="divider"></mat-divider>
-            </mat-list-item>
-        </mat-list>
-    </div>
-    <div class="right-side" fxLayout="column" fxLayoutGap="20px">
-        <div class="home-img"></div>
-        <div class="action_area" fxLayout="column" fxLayoutAlign="center center">
-            <div fxLayoutGap="25px">
-                <button mat-flat-button color="primary" (click)="createTable = !createTable">Nouvelle partie</button>
+    <img src="../../../../assets/images/background.jpg" alt="Blackjack table">
+    <div class="sub_container" fxLayout="column" fxLayoutAlign="space-around center" fxLayoutGap="20px">
+        <div class="title_bar" fxLayout="row" fxLayoutAlign="space-around center">
+            <div fxLayout="row" fxLayoutAlign="center center">
+                <h1 class="title">Blackjack </h1>
                 <app-rules></app-rules>
             </div>
-            <div *ngIf="createTable">
-                <div fxLayout="column" fxLayoutAlign="center center" class="create-room">
-                    <form [formGroup]="formNewTable" (ngSubmit)="onCreateRoom()">
-                        <mat-form-field>
-                            <mat-label>Room</mat-label>
-                            <input matInput placeholder="Room name" formControlName="roomName" color="primary"
-                                (keyUp.enter)="onCreateRoom()">
-                        </mat-form-field>
-                        <button mat-raised-button color="primary">Créer</button>
-                    </form>
+            <div fxLayout="row" fxLayoutAlign="center center">
+                <div class="s-icon p-{{icon}}" [matMenuTriggerFor]="menu"></div>
+                <mat-menu #menu="matMenu">
+                    <div mat-menu-item fxLayoutAlign="center">{{ username }}</div>
+                    <button mat-menu-item (click)="disconnect()">
+                        <mat-icon>exit_to_app</mat-icon> Quitter
+                    </button>
+                </mat-menu>
+            </div>
+        </div>
+        <div class="w100 body_container">
+            <div class="list_server" *ngIf="listTables">
+                <mat-list role="list">
+                    <mat-list-item>
+                        <button class="item" mat-button
+                            (click)="createTable = !createTable">{{ createTable? 'Annuler' : 'Créer' }}</button>
+                        <mat-divider [inset]="true" color="primary" class="divider"></mat-divider>
+                    </mat-list-item>
+
+                    <mat-list-item role="listitem" *ngFor="let table of listTables; let i of index">
+                        <div class="item" fxLayout="row" fxLayoutAlign="space-between center">
+                            <div>{{ table.name }}</div>
+                            <button mat-button (click)="joinTable(table)">
+                                Rejoindre
+                            </button>
+                        </div>
+                        <mat-divider [inset]="true" color="primary" class="divider"></mat-divider>
+                    </mat-list-item>
+                </mat-list>
+            </div>
+            <div fxLayout="column" fxLayoutAlign="center center" class="create-room" *ngIf="createTable">
+                <form [formGroup]="formNewTable" fxLayout="column">
+                    <mat-form-field>
+                        <mat-label>Nom</mat-label>
+                        <input matInput placeholder="Nom" formControlName="roomName"
+                            (keyUp.enter)="onCreateRoom()">
+                    </mat-form-field>
+                </form>
+                <div fxLayout="row" fxLayoutAlign="space-around">
+                    <button mat-raised-button color="primary" (click)="onCreateRoom()"
+                        [disabled]="formNewTable.invalid">Créer</button>
+                    <button mat-raised-button (click)="createTable = !createTable">Annuler</button>
                 </div>
             </div>
         </div>

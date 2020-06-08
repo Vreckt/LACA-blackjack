@@ -53,6 +53,11 @@ export class BlackjackComponent implements OnInit {
     this.router.navigate([table.id], { relativeTo: this.route });
   }
 
+  disconnect() {
+    localStorage.clear();
+    this.router.navigate(['../'], { relativeTo: this.route });
+  }
+
   private setupSocketConnection() {
     this.socketService.socket.on(SocketKey.Connected, data => {
       this.socketService.keepConnectionId(data.id);
