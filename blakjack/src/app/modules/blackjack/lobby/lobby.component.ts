@@ -6,13 +6,16 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { DialogRetryComponent } from './dialogRetry/dialog.retry.component';
 import { MatDialog } from '@angular/material/dialog';
 import { TableComponent } from './dialogTable/table.component';
-
+ 
 @Component({
   selector: 'app-lobby',
   templateUrl: './lobby.component.html',
   styleUrls: ['./lobby.component.scss']
 })
 export class LobbyComponent implements OnInit {
+
+  BETUMBER_ALLOWED_CHARS_REGEXP = /[0-9\/]+/;
+
   icon = 1;
   init = false;
   tableId = null;
@@ -25,6 +28,8 @@ export class LobbyComponent implements OnInit {
   showTable = false;
   showBet = false;
   canBetButton = false;
+  betAmount = 0;
+  isBetAmountCorrect = this.betAmount > 0 && this.betAmount <= this.player.credits;
 
   message = 'Welcome !';
 
@@ -126,14 +131,14 @@ export class LobbyComponent implements OnInit {
 
   // Bet
 
-  sendBet(betMoney: number) {
-    if (this.canBetButton) {
+  sendBet() {
+    if (this.canBetButton && this.isBetAmountCorrect) {
       this.canBetButton = false;
-      console.log(betMoney);
+      console.log(this.betAmount);
       this.socketService.socket.emit(SocketKey.PlayerBet, {
         roomId: this.tableId,
         playerId: this.player.id,
-        betMoney
+        betMoney: this.betAmount
       });
     }
   }
@@ -171,6 +176,7 @@ export class LobbyComponent implements OnInit {
 
   private manageEndGame(data) {
     console.log("manageEndGame");
+    this.betAmount = 0;
     const listPlayers = [];
     for (const player of data.table.players) {
       listPlayers.push({
@@ -273,6 +279,12 @@ export class LobbyComponent implements OnInit {
         alert('Le joueur ' + data.kickPlayer.name + ' a été expulsé du lobby par l\'admin');
       }
     });
+  }
+
+  public inputBetValidator(event: any) {
+    if (!this.BETUMBER_ALLOWED_CHARS_REGEXP.test(event.key)) {
+      event.preventDefault();
+    }
   }
 
   ngOnDestroy() {

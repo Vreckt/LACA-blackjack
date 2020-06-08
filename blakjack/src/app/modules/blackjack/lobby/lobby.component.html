@@ -67,15 +67,16 @@
         <div *ngIf="showBet" class="player-area" fxLayout="column">
           <div class="player-bet-area" fxlayout="row" fxLayoutAlign="center center">
             <div class="player-bet-div " fxLayout="column" fxLayoutAlign="center center">
+              Credits: {{player.credits}}
               <form class="example-form">
                   <mat-form-field class="example-full-width">
                       <mat-label>Mise</mat-label>
-                      <input #bet matInput type="number" placeholder="50" autocomplete='off'
-                          (keyUp.enter)="sendBet($event.target.value)">
+                      <input matInput type="number" placeholder="50" autocomplete='off' (keypress)="inputBetValidator($event)"
+                          (keyUp.enter)="sendBet()" [(ngModel)] ='betAmount' name="betInput">
                       <span matSuffix>€</span>
                   </mat-form-field>
               </form>
-              <button mat-raised-button color="primary" (click)="sendBet(bet.value)">Valider la mise</button>
+              <button [disabled]="betAmount <= 0 || betAmount > player.credits" mat-raised-button color="primary" (click)="sendBet()">Valider la mise</button>
           </div>
           </div>
         </div>
