@@ -5,6 +5,7 @@ const socketKeys = require('./shared/enum/socketKeys');
 const { decks } = require('./cards');
 const ResponseBJAction = require('./shared/models/response/responseBlackJack');
 var express = require('express');
+const tableType = require('./shared/enum/tableType');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server, {
@@ -45,7 +46,12 @@ io.on(socketKeys.Connection, (socket) => {
     socket.on(socketKeys.NewLobby, data => {
         const roomId = createRoomId(32) + player.id;
         if (!listServer.has(roomId)) {
-            const table = new BlackjackTable(roomId, data.roomName, 1, player);
+            let table = null;
+            switch (data.configs.tableType) {
+                case tableType.Blackjack:
+                    table = new BlackjackTable(roomId, data.roomName, data.configs.password, data.configs.difficulty, player);
+                    break;
+            }
             listServer.set(roomId, table);
             io.to(socket.id).emit(socketKeys.NewLobby, { roomId: roomId, roomName: data.roomName});
             socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
@@ -158,21 +164,27 @@ io.on(socketKeys.Connection, (socket) => {
               setTimeout(() => {
                   // Start the game because all players have bet
                   table.startedTable();
-                  table.deck = new decks.StandardDeck({nbDeck: table.nbDeck});
+                  table.deck = new decks.StandardDeck({nbDeck: table.difficulty});
                   table.deck.shuffleAll();
-                  let i = 0;
-                  while (i < 2) {
-                      for (const player of table.players) {
-                          table.drawCard(table.players.findIndex(p => p.id === player.id));
+                  for (let i = 0; i < 2;i++) {
+                    setTimeout(()=>{
+                      for (let p = 0; p < table.players.length; p++) {
+                        setTimeout(()=>{
+                            const response = table.drawCard(p);
+                            table.setScoreToPlayer(p, response.point);
+                            io.in(data.roomId).emit(socketKeys.DrawCard, response);
+                        }, p * 1500);
                       }
-                      i++;
+                    }, i * 1500 * table.players.length);
                   }
-                  table.drawCard(table.bank, true);
-                  table.drawCard(table.bank, true);
-                  table.bank.hand[1].visible = false;
-                  table.setCurrentPlayerTurn(table.players[0].id);
-                  const response = table.createResponse(table.players[0]);
-                  io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
+                  setTimeout(()=>{
+                    table.drawCard(table.bank, true);
+                    table.drawCard(table.bank, true);
+                    table.bank.hand[1].visible = false;
+                    table.setCurrentPlayerTurn(table.players[0].id);
+                    const response = table.createResponse(table.players[0]);
+                    io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
+                  }, table.players.length * 3000);
               }, 1000);
           }
         } else {

@@ -36,6 +36,7 @@
                     </mat-list-item>
                 </mat-list>
             </div>
+            <!-- Create new Table -->
             <div fxLayout="column" fxLayoutAlign="center center" class="create-room" *ngIf="createTable">
                 <form [formGroup]="formNewTable" fxLayout="column">
                     <mat-form-field>
@@ -43,6 +44,20 @@
                         <input matInput placeholder="Nom" formControlName="roomName"
                             (keyUp.enter)="onCreateRoom()">
                     </mat-form-field>
+                    <mat-form-field>
+                        <mat-label>Mot de passe</mat-label>
+                        <input matInput placeholder="Mot de passe" formControlName="password"
+                            (keyUp.enter)="onCreateRoom()">
+                    </mat-form-field>
+                    <mat-form-field>
+                        <mat-label>Difficulté</mat-label>
+                        <mat-select placeholder="Difficulté" formControlName="difficulty">
+                          <mat-option [value]="1">1 paquet</mat-option>
+                          <mat-option [value]="2">2 paquets</mat-option>
+                          <mat-option [value]="4">4 paquets</mat-option>
+                          <mat-option [value]="8">8 paquets</mat-option>
+                        </mat-select>
+                      </mat-form-field>
                 </form>
                 <div fxLayout="row" fxLayoutAlign="space-around">
                     <button mat-raised-button color="primary" (click)="onCreateRoom()"
