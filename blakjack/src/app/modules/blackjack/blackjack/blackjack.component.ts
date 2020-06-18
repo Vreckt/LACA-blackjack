@@ -3,6 +3,7 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SocketKey } from '../../../shared/models/enums/SocketKey';
+import { TableType } from 'src/app/shared/models/enums/tableType';
 
 @Component({
   selector: 'app-blackjack',
@@ -35,7 +36,9 @@ export class BlackjackComponent implements OnInit {
       this.router.navigate(['../connection'], { relativeTo: this.route });
     }
     this.formNewTable = new FormGroup({
-      roomName: new FormControl('', Validators.required)
+      roomName: new FormControl('', Validators.required),
+      password: new FormControl(''),
+      difficulty: new FormControl('', Validators.required),
     });
     console.log(this.socketService.listServers);
     setTimeout(() => {
@@ -45,7 +48,13 @@ export class BlackjackComponent implements OnInit {
 
   onCreateRoom() {
     this.socketService.createNewLobby({
-      roomName: this.formNewTable.value.roomName
+      roomName: this.formNewTable.value.roomName,
+      configs: {
+        tableType: TableType.Blackjack,
+        difficulty: this.formNewTable.value.difficulty,
+        isPrivate: this.formNewTable.value.password ? true : false,
+        password: this.formNewTable.value.password
+      }
     });
   }
 

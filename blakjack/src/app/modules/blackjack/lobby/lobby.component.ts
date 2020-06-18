@@ -1,20 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SocketBlackJackService } from 'src/app/shared/services/socket-blackjack.service';
 import { SocketKey } from '../../../shared/models/enums/SocketKey';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { DialogRetryComponent } from './dialogRetry/dialog.retry.component';
 import { MatDialog } from '@angular/material/dialog';
 import { TableComponent } from './dialogTable/table.component';
- 
+import { Subject } from 'rxjs';
+
 @Component({
   selector: 'app-lobby',
   templateUrl: './lobby.component.html',
   styleUrls: ['./lobby.component.scss']
 })
-export class LobbyComponent implements OnInit {
+export class LobbyComponent implements OnInit, OnDestroy {
 
-  BETUMBER_ALLOWED_CHARS_REGEXP = /[0-9\/]+/;
+  @ViewChild('timerBar') timerBar: ElementRef;
+  
+ BETUMBER_ALLOWED_CHARS_REGEXP = /[0-9\/]+/;
 
   icon = 1;
   init = false;
@@ -30,8 +32,15 @@ export class LobbyComponent implements OnInit {
   canBetButton = false;
   betAmount = 0;
   isBetAmountCorrect = this.betAmount > 0 && this.betAmount <= this.player.credits;
+  isMyTurn = false;
 
   message = 'Welcome !';
+
+
+  activity;
+  playerInactivity: Subject<any> = new Subject();
+  timer;
+  timerCountdown: Subject<any> = new Subject();
 
   constructor(
     private route: ActivatedRoute,
@@ -39,14 +48,14 @@ export class LobbyComponent implements OnInit {
     private socketService: SocketBlackJackService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
-    ) {
-      this.route.paramMap.subscribe(params => {
-        this.tableId = params.get('id');
-      });
-    }
+  ) {
+    this.route.paramMap.subscribe(params => {
+      this.tableId = params.get('id');
+    });
+  }
 
   ngOnInit() {
-  this.icon = +localStorage.getItem('iconColor');
+    this.icon = +localStorage.getItem('iconColor');
     if (this.socketService.socket) {
       this.aftersocketInit();
     } else {
@@ -85,21 +94,55 @@ export class LobbyComponent implements OnInit {
     const playerIndex = this.table.players.findIndex(player =>
       player.id === this.socketService.getConnectionId() && player.name === localStorage.getItem('username')
     );
-    console.log(playerIndex);
     this.player = this.table.players.splice(playerIndex, 1)[0];
-    const isMyTurn = this.player.id === data.playerId;
-    this.enableDrawBtn = data.isShownDrawButton && isMyTurn;
-    this.enableEndTurn = isMyTurn && this.table.status === 'S';
-    this.enableDoubleBtn = data.isShownDoubleButton && isMyTurn;
-    console.log("data MANAGE UI ", data);
-    console.log("isMyTurn", isMyTurn);
-    console.log("this.player.id", this.player.id);
-    console.log("data.playerId", data.playerId);
+    this.isMyTurn = this.player.id === data.playerId;
+    //timerBar
+    if (this.isMyTurn) {
+      setTimeout(() => {
+        clearTimeout(this.timer);
+        this.setTimeout(10);
+        this.playerInactivity = new Subject();
+        this.timerCountdown = new Subject();
+        this.playerInactivity.subscribe(() => {
+          console.log('user has been inactive for 10s');
+          clearInterval(this.timer);
+        });
+        this.timerCountdown.subscribe();
+      }, 5000);
+    } else {
+      this.playerInactivity.complete();
+    }
+    this.enableDrawBtn = data.isShownDrawButton && this.isMyTurn;
+    this.enableEndTurn = this.isMyTurn && this.table.status === 'S';
+    this.enableDoubleBtn = data.isShownDoubleButton && this.isMyTurn;
     this.showBet = this.table.status === 'B' && this.player.currentBet === 0;
     this.canBetButton = this.showBet;
 
     if (this.table.id.includes(this.socketService.getConnectionId()) || this.table.adminId === this.socketService.getConnectionId()) {
       this.isAdmin = true;
+    }
+  }
+
+  setTimeout(count: number) {
+    let time = 1;
+    if (this.timerBar) {
+      this.timerBar.nativeElement.style.width = '0%';
+    }
+    this.timer = setInterval(() => {
+      this.timerCountdown.next();
+      time++;
+      if (this.timerBar) {
+        this.timerBar.nativeElement.style.width = ((time / 100 ) * 10).toString() + '%';
+      }
+    }, 10);
+    this.activity = setTimeout(() => this.playerInactivity.next(undefined), count * 1000);
+  }
+
+  @HostListener('window:mousemove') refreshUserState() {
+    clearTimeout(this.activity);
+    clearTimeout(this.timer);
+    if (this.isMyTurn) {
+      this.setTimeout(10);
     }
   }
 
@@ -118,10 +161,6 @@ export class LobbyComponent implements OnInit {
   }
 
   drawCard() {
-    // this.socketService.socket.emit(SocketKey.DrawCard, ({
-    //   roomId: this.tableId,
-    //   playerId: this.player.id
-    // }));
     this.socketService.socket.emit(SocketKey.Action, ({
       actionKeys: SocketKey.DrawCard,
       roomId: this.tableId,
@@ -159,7 +198,7 @@ export class LobbyComponent implements OnInit {
   }
 
   onLeaveTable() {
-    this.socketService.socket.emit(SocketKey.LeaveTable, {roomId: this.table.id});
+    this.socketService.socket.emit(SocketKey.LeaveTable, { roomId: this.table.id });
     this.router.navigate(['../'], { relativeTo: this.route });
   }
 
@@ -168,10 +207,11 @@ export class LobbyComponent implements OnInit {
   }
 
   showBetPlayer(username: string, betMoney: string) {
-    this.snackBar.open(username + ' a misé ' + betMoney + '€', null, {
-      duration: 1500,
-      verticalPosition: 'top'
-    });
+    this.message = username + ' a misé ' + betMoney + '€';
+    // this.snackBar.open(username + ' a misé ' + betMoney + '€', null, {
+    //   duration: 1500,
+    //   verticalPosition: 'top'
+    // });
   }
 
   private manageEndGame(data) {
@@ -189,7 +229,7 @@ export class LobbyComponent implements OnInit {
     const dialog = this.dialog.open(TableComponent, {
       width: '50%',
       disableClose: true,
-      data :
+      data:
       {
         score: listPlayers,
         admin: this.isAdmin
@@ -206,24 +246,40 @@ export class LobbyComponent implements OnInit {
     });
   }
 
+  getDifficulty(): string {
+    switch (this.table.difficulty) {
+      case 1:
+        return '1 paquet';
+        break;
+      case 2:
+        return '2 paquets';
+        break;
+      case 4:
+        return '4 paquets';
+        break;
+      case 8:
+        return '8 paquets';
+        break;
+      default:
+        return '1 paquet';
+        break;
+    }
+  }
+
   private setupSocketConnection() {
 
     this.socketService.listen(SocketKey.JoinTable).subscribe((data: any) => {
-      console.log(data)
       this.manageUI(data);
       this.init = true;
     });
 
     this.socketService.listen(SocketKey.PlayerJoin).subscribe((data: any) => {
-      console.log(data);
       this.manageUI(data);
     });
 
     this.socketService.listen(SocketKey.PlayerLeave).subscribe((data: any) => {
       data.playerId = data.table.currentPlayer;
       this.manageUI(data);
-      console.log(data);
-      // this.showRoundPlayer(data.table.players.find(p => p.id === data.table.currentPlayer).name);
     });
 
     this.socketService.listen(SocketKey.BankShowCard).subscribe((data: any) => {
@@ -235,43 +291,33 @@ export class LobbyComponent implements OnInit {
     });
 
     this.socketService.listen(SocketKey.PlayerBet).subscribe((data: any) => {
-      console.log(data);
       this.manageUI(data);
       const tmpPlayer = data.table.players.find(p => p.id === data.playerId);
-      console.log(tmpPlayer);
-      console.log(data.playerId);
       if (tmpPlayer) {
         this.showBetPlayer(tmpPlayer.name, tmpPlayer.currentBet);
       }
     });
 
     this.socketService.listen(SocketKey.PlayerTurn).subscribe((data: any) => {
-      console.log(data);
       this.manageUI(data);
       const tmpPlayer = data.table.players.find(p => p.id === data.playerId);
-      console.log(tmpPlayer);
       this.showRoundPlayer(tmpPlayer.name);
     });
 
     this.socketService.listen(SocketKey.StartGame).subscribe((data: any) => {
-      console.log(data);
       this.manageUI(data);
     });
 
     this.socketService.listen(SocketKey.DrawCard).subscribe((data: any) => {
-      console.log(data);
       this.manageUI(data);
     });
 
     this.socketService.listen(SocketKey.FinishGame).subscribe((data: any) => {
-      console.log(this.socketService.socket);
-      console.log('end: ', data);
       this.manageUI(data);
       this.manageEndGame(data);
     });
 
     this.socketService.listen(SocketKey.PlayerKick).subscribe((data: any) => {
-      console.log(data.kickPlayer);
       if (this.player.id === data.kickPlayer.id) {
         this.onLeaveTable();
         alert('Vous avez été kické par l\'admin');

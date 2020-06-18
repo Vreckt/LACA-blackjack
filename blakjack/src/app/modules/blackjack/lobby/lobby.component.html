@@ -6,26 +6,28 @@
         </mat-toolbar-row>
         <mat-toolbar-row style="background-color: white; color: black; height: auto; height: 32px;" fxLayoutAlign="center center">
           <span>{{ message }}</span>
+        </mat-toolbar-row><mat-toolbar-row style="background-color: white; height: 4px;" fxLayoutAlign="center center">
+          <div #timerBar style="background-color: red; height: 4px;"></div>
         </mat-toolbar-row>
     </mat-toolbar>
     <br>
+    <!-- Table -->
     <div fxLayout="row" fxLayoutAlign="space-around" *ngIf="showTable">
       <div class="left_side" fxLayout="column">
-        <div class="other_player_list" fxLayout="row wrap" fxLayoutAlign="space-around">
-          <div class="other_player" *ngFor="let player of table.players" fxLayout="column" [ngClass]="{'hisTurn': player.id === table.currentPlayer}">
-            <div class="other_player_header" fxLayoutAlign="space-between center">
-              <div fxLayout="row" fxLayoutAlign="center center"><div class="s-icon p-{{player.icon}}"> </div><div>{{ player.name }}</div></div>
-              <div>21</div>
-            </div>
-            <div class="other-card-area" fxlayout="row" fxLayoutAlign="center center">
-                <div class="other-card"
-                  *ngFor="let card of player.hand"
-                  style="background-image: url(../../../../assets/images/cards/{{card.name}}.jpg);"
-                  fxlayout="row">
-                </div>
-            </div>
-            <div class="other_player_footer" fxlayout="row" fxLayoutAlign="center center">
-              Mise: {{player.currentBet}}
+        <div class="other_player_list">
+          <div class="other_player" [style.height.%]="100 / table.players.length" *ngFor="let player of table.players" fxLayout="row" [ngClass]="{'hisTurn': player.id === table.currentPlayer}">
+            <div fxLayout="column" fxLayoutAlign="space-between" class="other_player_area">
+              <div fxLayout="row" fxLayoutAlign="space-between center" class="other_player_name">
+                <div class="s-icon p-{{player.icon}}"></div>
+                <div>{{ player.name }}</div>
+              </div>
+              <div fxlayout="row" fxLayoutAlign="center center">
+                <img class="other_card" *ngFor="let card of player.hand" src="../../../../assets/images/cards/{{card.name}}.jpg" >
+              </div>
+              <div fxLayout="row" fxLayoutAlign="space-around">
+                <div>Mise: {{player.currentBet}}</div>
+                <div>Score: {{player.score}}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -33,32 +35,22 @@
       <div class="right_side" fxLayout="column">
         <div class="bank-area" fxlayout="row" fxLayoutAlign="center center">
           <div *ngFor="let card of table.bank.hand">
-            <div class="bank_card"
-            style="background-image: url(../../../../assets/images/cards/{{card.name}}.jpg);"
-             *ngIf="card.visible"
-              fxlayout="row">
-              </div>
-              <div class="bank_card"
-              *ngIf="!card.visible"
-              style="background-image: url(../../../../assets/images/cards/blue_back.jpg);"
-              fxlayout="row">
-              </div>
+            <img class="bank_card" *ngIf="card.visible" src="../../../../assets/images/cards/{{card.name}}.jpg">
+            <img class="bank_card" *ngIf="!card.visible" src="../../../../assets/images/cards/blue_back.jpg">
           </div>
         </div>
         <div *ngIf="!showBet" class="player-area" fxlayout="column">
           <div class="player-card-area" fxlayout="row" fxLayoutAlign="center center">
-            <div class="player-card"
-            *ngFor="let card of player.hand"
-            style="background-image: url(../../../../assets/images/cards/{{card.name}}.jpg);"
-            fxlayout="row">
-            </div>
+            <img class="player-card" *ngFor="let card of player.hand" src="../../../../assets/images/cards/{{card.name}}.jpg">
           </div>
 
-          <div class="player-bet-info" fxlayout="row" fxLayoutAlign="center center">
-            Mise: {{player.currentBet}} - Credits: {{player.credits}} - Score: {{player.score}}
+          <div fxlayout="row" fxLayoutAlign="space-around center">
+            <h2>Credits: {{player.credits}}$</h2>
+            <h2>Mise: {{player.currentBet}}$</h2>
+            <h2>Score: {{player.score}}</h2>
           </div>
 
-          <div class="player-action-area" fxLayout="row" fxLayoutGap="20px">
+          <div class="player_action_area" fxLayout="row" fxLayoutGap="20px">
             <button mat-raised-button color="primary" (click)="drawCard()" [disabled]="!enableDrawBtn">Piocher</button>
             <button mat-raised-button color="warn" (click)="doubleBet()" [disabled]="!enableDoubleBtn">Doubler</button>
             <button mat-raised-button (click)="endRound()" [disabled]="!enableEndTurn">Fin de tour</button>
@@ -82,31 +74,34 @@
         </div>
       </div>
     </div>
+    <!-- Lobby -->
     <div fxLayout="column" fxLayoutAlign="center center" *ngIf="!showTable">
-      <div fxLayout="row wrap" fxLayoutAlign="space-between" fxLayoutGap="15px">
-        <div fxLayout="column" fxLayoutAlign="space-between" class="lobby-player">
-          <div></div>
-          <div  fxLayoutAlign="center">
-            <mat-icon color="primary">person</mat-icon>
-          </div>
-          <div fxLayoutAlign="center">{{ player.name }}</div>
+      <div fxLayout="row" fxLayoutAlign="space-around" style="width: 80%;">
+        <div class="table_config">
+          <h1>{{ table.name }}</h1>
+          <p>Difficulté: {{ getDifficulty() }}</p>
+          <p>password : {{ table.password }}</p>
         </div>
-
-        <div *ngFor="let player of table.players" fxLayout="column" fxLayoutAlign="space-between" class="lobby-player">
-            <div class="lobby-player-header" fxLayout="row" fxLayoutAlign="end">
-              <mat-icon *ngIf="isAdmin" (click)="onRemovePlayer(player.id)" color="primary">close</mat-icon>
-            </div>
-            <div  fxLayoutAlign="center">
-              <mat-icon color="primary">person</mat-icon>
-
-            </div>
-            <div fxLayoutAlign="center">{{ player.name }}</div>
+        <div class="usercontainer">
+          <div fxLayout="row" fxLayoutAlign="space-around center" class="lobby-player">
+            <div class="s-icon p-{{player.icon}}"></div>
+            <div>{{ player.name }}</div>
+          </div>
+          <div *ngFor="let player of table.players" fxLayout="row"
+          fxLayoutAlign="space-around center" class="lobby-player">
+            <div class="s-icon p-{{player.icon}}" ></div>
+            <div>{{ player.name }}</div>
+            <mat-icon *ngIf="isAdmin"
+            fxLayoutAlign="end"
+            (click)="onRemovePlayer(player.id)"
+            style="cursor: pointer;"
+            color="primary">close</mat-icon>
+          </div>
         </div>
 
       </div>
       <br>
-      <button *ngIf="isAdmin" (click)="onStartGame()">Commencer</button>
+      <button mat-raised-button *ngIf="isAdmin" (click)="onStartGame()">Commencer</button>
     </div>
 
 </div>
-<!-- <button (click)="trigger()">trigger</button> -->

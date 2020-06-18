@@ -2,9 +2,10 @@ const Card = require('../card');
 
 
 class Table {
-  constructor(id, name, type = 0) {
+  constructor(id, name, password, type = 0) {
     this.id = id;
     this.name = name;
+    this.password = password;
     this.type = type;
     this.players = [];
     this.deck;

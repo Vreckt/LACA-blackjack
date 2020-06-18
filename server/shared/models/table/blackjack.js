@@ -7,8 +7,8 @@ const Card = require('../../../shared/models/card');
 
 class BlackjackTable extends Table {
 
-    constructor(id, name, difficulty, player) {
-        super(id, name, tableType.Blackjack),
+    constructor(id, name, password, difficulty, player) {
+        super(id, name, password, tableType.Blackjack),
         this.difficulty = difficulty,
         this.bank = new Bank();
         this.addPlayerInTable(player, true);
