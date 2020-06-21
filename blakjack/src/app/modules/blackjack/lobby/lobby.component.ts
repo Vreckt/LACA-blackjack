@@ -16,7 +16,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   @ViewChild('timerBar') timerBar: ElementRef;
   
- BETUMBER_ALLOWED_CHARS_REGEXP = /[0-9\/]+/;
+  BETUMBER_ALLOWED_CHARS_REGEXP = /[0-9\/]+/;
 
   icon = 1;
   init = false;
@@ -31,11 +31,13 @@ export class LobbyComponent implements OnInit, OnDestroy {
   showBet = false;
   canBetButton = false;
   betAmount = 0;
-  isBetAmountCorrect = this.betAmount > 0 && this.betAmount <= this.player.credits;
   isMyTurn = false;
 
-  message = 'Welcome !';
+  isBetAmountCorrect = () => {
+    return this.betAmount > 0 && this.betAmount <= this.player.credits;
+  }
 
+  message = 'Welcome !';
 
   activity;
   playerInactivity: Subject<any> = new Subject();
