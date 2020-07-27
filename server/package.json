@@ -2,8 +2,9 @@
     "name": "casino",
     "version": "0.1.0",
     "dependencies": {
-        "ent": "^0.1.0",
+        "ent": "^2.2.0",
         "express": "^3.11.0",
+        "rand-utils": "^1.0.0",
         "socket.io": "^1.2.1"
     }
 }
