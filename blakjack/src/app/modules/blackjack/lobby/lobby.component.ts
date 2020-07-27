@@ -176,7 +176,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
     if (this.canBetButton && this.isBetAmountCorrect) {
       this.canBetButton = false;
       console.log(this.betAmount);
-      this.socketService.socket.emit(SocketKey.PlayerBet, {
+      this.socketService.socket.emit(SocketKey.Action, {
+        actionKeys: SocketKey.PlayerBet,
         roomId: this.tableId,
         playerId: this.player.id,
         betMoney: this.betAmount
@@ -186,7 +187,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   doubleBet() {
     this.enableDrawBtn = false;
-    this.socketService.socket.emit(SocketKey.PlayerDouble, {
+    this.socketService.socket.emit(SocketKey.Action, {
+      actionKeys: SocketKey.PlayerDouble,
       roomId: this.tableId,
       playerId: this.player.id
     });

@@ -25,6 +25,33 @@ class BlackjackTable extends Table {
         }
     }
 
+    doubleBet(playerIndex, currentPlayer) {
+        if (currentPlayer.currentBet * 2 <= currentPlayer.credits) {
+            this.players[playerIndex].credits -= currentPlayer.currentBet;
+            this.players[playerIndex].currentBet = currentPlayer.currentBet * 2;
+            this.players[playerIndex].hasDouble = true;
+            return this.drawCard(playerIndex);
+        } else {
+            return `info-playerdonthavemoney`;
+        }
+    }
+
+    playerBet(betMoney, playerIndex) {
+        this.players[playerIndex].credits -= betMoney;
+        this.players[playerIndex].currentBet = betMoney;
+        return this.manageBet(this.players[playerIndex].id);
+    }
+
+    drawAllCards() {
+        for (let i = 0; i < 2; i++) {
+            for (let p = 0; p < table.players.length; p++) {
+                const response = table.drawCard(p);
+                table.setScoreToPlayer(p, response.point);
+                io.in(data.roomId).emit(socketKeys.DrawCard, response);    
+            }
+        }
+    }
+
     bankDrawCard() {
         return this.drawCardFromDeck(1)[0];
     }
@@ -72,7 +99,6 @@ class BlackjackTable extends Table {
             response.drawCard = player.hand[player.hand.length - 1];
         }
         response.table = this;
-     
         return response
     }
 
@@ -82,7 +108,7 @@ class BlackjackTable extends Table {
         for (const player of this.players) {
           player.clean();
         }
-      }
+    }
 
     manageBet(playerId) {
         const response = new ResponseBJAction();
@@ -143,7 +169,6 @@ class BlackjackTable extends Table {
     
         return this;
     }
-    
 }
 
 
