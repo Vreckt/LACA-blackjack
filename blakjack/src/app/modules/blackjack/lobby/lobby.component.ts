@@ -195,7 +195,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   endRound() {
-    this.socketService.socket.emit(SocketKey.PlayerEnd, {
+    this.socketService.socket.emit(SocketKey.Action, {
+      actionKeys: SocketKey.PlayerEnd,
       roomId: this.tableId,
       playerId: this.player.id
     });

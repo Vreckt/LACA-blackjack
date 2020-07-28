@@ -193,7 +193,41 @@ io.on(socketKeys.Connection, (socket) => {
                     break;
                 }
                 case socketKeys.PlayerEnd: {
-                    // TODO
+                    if (table.players.findIndex(p => p.id === data.playerId) === (table.players.length - 1)) {
+                        let response = table.calculateHand(table.bank);
+                        io.in(data.roomId).emit(socketKeys.BankShowCard, table.playerEnds(response));
+                        if (response.point < 17) {
+                            const drawedCards = table.bankEndDraw(response.point);
+                            for (let i = 2; i < drawedCards.length; i++) {
+                                setTimeout(() => {
+                                    if (i === drawedCards.length - 1) {
+                                        response.table = table.manageEndGame();
+                                        io.in(data.roomId).emit(socketKeys.FinishGame, response);
+                                    } else {
+                                        io.in(data.roomId).emit(socketKeys.BankDrawCard, table.bankDrawCard(drawedCards[i]));
+                                    }
+                                }, i * 1000);
+                            }
+                        } else {
+                            response.table = table.manageEndGame();
+                            io.in(data.roomId).emit(socketKeys.FinishGame, response);
+                            console.log("Finish game with no cards draw by the bank");
+                        }
+            
+                    } else {
+                        const { nextPlayer, nextPlayerIndex } = table.getNextPlayer(player.id);
+                        const response = table.calculateHand(nextPlayer);
+                        response.table = table;
+                        if (nextPlayer.hand.length === 0) {
+                            response.table = table.manageEndGame();
+                            io.in(data.roomId).emit(socketKeys.FinishGame, response);
+                        } else {
+                            table.currentPlayer = nextPlayer.id;
+                            listServer.set(data.roomId, table);
+                            response.table = listServer.get(data.roomId);
+                            io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
+                        }
+                    }
                     break;
                 }
                 default:
@@ -204,61 +238,7 @@ io.on(socketKeys.Connection, (socket) => {
 
     socket.on(socketKeys.PlayerEnd, (data) => {
         var currentTable = listServer.get(data.roomId);
-        if (currentTable.players.findIndex(p => p.id === data.playerId) === (currentTable.players.length - 1)) {
-            let response = currentTable.calculateHand(currentTable.bank);
-            currentTable.bank.hand[1].visible = true;
-            currentTable.bank.point = response.point;
-            currentTable.bank.isBlackjack = response.isBlackJack;
-            currentTable.bank.isWin = response.isWin;
-            response.table = currentTable;
-            // permet d'envoyer à tout le monde la liste des cartes de la banque avec toutes les cartes retournées
-            io.in(data.roomId).emit(socketKeys.BankShowCard, response);
-            // on copie la main de la bank dans une nouvelle liste
-            let cardsDraw = currentTable.bank.hand.slice();
-            if (response.point < 17) {
-                // on fait tirer la bank tant que son nombre de quoi n'est pas supérieur ou égal à 17
-                while (response.point < 17) {
-                    cardsDraw.push(currentTable.bankDrawCard());
-                    response = currentTable.calculateHand({ hand: cardsDraw });
-                }
-                // on boucle sur la liste qu'on à créer pour envoyer à tout le monde une carte à la fois
-                for (let i = 2; i < cardsDraw.length; i++) {
-                    setTimeout(() => {
-                        currentTable.bank.hand.push(cardsDraw[i]);
-                        response = currentTable.calculateHand(currentTable.bank);
-                        currentTable.bank.point = response.point;
-                        currentTable.bank.isBlackjack = response.isBlackJack;
-                        currentTable.bank.isWin = response.isWin;
-                        response.table = currentTable;
-                        response.cardDraw = cardsDraw[i];
-                        io.in(data.roomId).emit(socketKeys.BankDrawCard, response);
-                        if (i === cardsDraw.length - 1) {
-                            response.table = currentTable.manageEndGame();
-                            io.in(data.roomId).emit(socketKeys.FinishGame, response);
-                            console.log("finishGame with cards draw by the bank");
-                        }
-                    }, i * 1000);
-                }
-            } else {
-                response.table = currentTable.manageEndGame();
-                io.in(data.roomId).emit(socketKeys.FinishGame, response);
-                console.log("Finish game with no cards draw by the bank");
-            }
-
-        } else {
-            const { nextPlayer, nextPlayerIndex } = currentTable.getNextPlayer(player.id);
-            const response = currentTable.calculateHand(nextPlayer);
-            response.table = currentTable;
-            if (nextPlayer.hand.length === 0) {
-                response.table = currentTable.manageEndGame();
-                io.in(data.roomId).emit(socketKeys.FinishGame, response);
-            } else {
-                currentTable.currentPlayer = nextPlayer.id;
-                listServer.set(data.roomId, currentTable);
-                response.table = listServer.get(data.roomId);
-                io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
-            }
-        }
+        
     });
 
     socket.on(socketKeys.Trigger, () => {
