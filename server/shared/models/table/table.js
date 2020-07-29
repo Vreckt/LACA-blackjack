@@ -17,7 +17,9 @@ class Table {
   getPlayers() { return this.players.slice(); }
 
   betTable() { this.status = 'B';}
-  startedTable() { this.status = 'S'; }
+  startedTable() { 
+    this.status = 'S';
+  }
   finishedTable() { this.status = 'F'; }
   isStarted() { return this.status === 'S'; }
   isBet() { return this.status === 'B'; }
