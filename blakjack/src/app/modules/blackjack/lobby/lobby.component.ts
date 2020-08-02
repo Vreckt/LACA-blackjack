@@ -94,7 +94,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
     const playerIndex = this.table.players.findIndex(player =>
       player.id === this.socketService.getConnectionId() && player.name === localStorage.getItem('username')
     );
-    console.log(data);
     this.player = this.table.players.splice(playerIndex, 1)[0];
     this.isMyTurn = this.player.id === data.playerId;
     //timerBar
