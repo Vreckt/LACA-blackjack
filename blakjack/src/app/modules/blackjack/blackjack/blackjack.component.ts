@@ -17,6 +17,10 @@ export class BlackjackComponent implements OnInit {
   icon = 1;
   formNewTable: FormGroup;
   listTables = [];
+  formConfirmPassword: FormGroup;
+  createPasswordTable = false;
+  passwordCheckFail = false;
+  selectedTable = {};
 
   constructor(
     private socketService: SocketBlackJackService,
@@ -44,6 +48,19 @@ export class BlackjackComponent implements OnInit {
     setTimeout(() => {
       this.listTables = this.socketService.listServers;
     }, 100);
+
+    this.formConfirmPassword = new FormGroup({
+      confirmPassword: new FormControl(''),
+    });
+  }
+
+  showTableForm() {
+    this.createTable = (this.createTable === false) ? true : false;
+    this.listTables.forEach(function (value) {
+      value.joined = false;
+    });
+    this.createPasswordTable = false;
+    this.passwordCheckFail = false;
   }
 
   onCreateRoom() {
@@ -58,8 +75,47 @@ export class BlackjackComponent implements OnInit {
     });
   }
 
+  getServerName(table) {
+    return table.name;
+  }
+
   joinTable(table) {
-    this.router.navigate([table.id], { relativeTo: this.route });
+    // faire côté serveur pour check le password
+    const confirmPassword = this.formConfirmPassword.value.confirmPassword;
+    console.log(table.password);
+    console.log(this.listTables);
+    if (table.password === confirmPassword)
+    {
+      this.passwordCheckFail = false;
+      this.router.navigate([table.id], { relativeTo: this.route });
+    }
+    else
+    {
+      this.formConfirmPassword.reset();
+      this.passwordCheckFail = true;
+    }
+  }
+
+  showPasswordForm(table) {
+    this.formConfirmPassword.reset();
+    table.joined = (table.joined === false) ? true : false;
+    this.listTables.forEach(function (value) {
+      if (table.id !== value.id) {
+        value.joined = false;
+      }
+    });
+    this.createPasswordTable = table.joined;
+    this.createTable = false;
+    this.selectedTable = table;
+    this.passwordCheckFail = false;
+  }
+
+  resetPasswordTable() {
+    this.listTables.forEach(function (value) {
+      value.joined = false;
+    });
+    this.createPasswordTable = false;
+    this.passwordCheckFail = false;
   }
 
   disconnect() {

@@ -20,16 +20,17 @@
             <div class="list_server" *ngIf="listTables">
                 <mat-list role="list">
                     <mat-list-item>
-                        <button class="item" mat-button
-                            (click)="createTable = !createTable">{{ createTable? 'Annuler' : 'Créer' }}</button>
+                        <button class="item" mat-button (click)="showTableForm()">
+                            {{ createTable? 'Annuler' : 'Créer' }}
+                        </button>
                         <mat-divider [inset]="true" color="primary" class="divider"></mat-divider>
                     </mat-list-item>
 
                     <mat-list-item role="listitem" *ngFor="let table of listTables; let i of index">
                         <div class="item" fxLayout="row" fxLayoutAlign="space-between center">
                             <div>{{ table.name }}</div>
-                            <button mat-button (click)="joinTable(table)">
-                                Rejoindre
+                            <button mat-button (click)="showPasswordForm(table);">
+                                {{ table.joined? 'Quitter' : 'Rejoindre' }}
                             </button>
                         </div>
                         <mat-divider [inset]="true" color="primary" class="divider"></mat-divider>
@@ -46,7 +47,7 @@
                     </mat-form-field>
                     <mat-form-field>
                         <mat-label>Mot de passe</mat-label>
-                        <input matInput placeholder="Mot de passe" formControlName="password"
+                        <input matInput type="password" placeholder="Mot de passe" formControlName="password"
                             (keyUp.enter)="onCreateRoom()">
                     </mat-form-field>
                     <mat-form-field>
@@ -63,6 +64,26 @@
                     <button mat-raised-button color="primary" (click)="onCreateRoom()"
                         [disabled]="formNewTable.invalid">Créer</button>
                     <button mat-raised-button (click)="createTable = !createTable">Annuler</button>
+                </div>
+            </div>
+            <!-- Create password form -->
+            <div fxLayout="column" fxLayoutAlign="center center" class="create-room" *ngIf="createPasswordTable">
+                <div *ngIf="passwordCheckFail">
+                    Mot de passe incorrect!
+                </div>
+                <div >
+                    Serveur : {{ getServerName(selectedTable) }}
+                </div>
+                <form [formGroup]="formConfirmPassword" fxLayout="column">
+                    <mat-form-field>
+                        <mat-label>Mot de passe</mat-label>
+                        <input matInput type="password" placeholder="Mot de passe" formControlName="confirmPassword">
+                    </mat-form-field>
+                </form>
+                <div fxLayout="row" fxLayoutAlign="space-around">
+                    <button mat-raised-button color="primary" (click)="joinTable(selectedTable)">
+                        Confirmer</button>
+                    <button mat-raised-button (click)="resetPasswordTable()">Quitter</button>
                 </div>
             </div>
         </div>

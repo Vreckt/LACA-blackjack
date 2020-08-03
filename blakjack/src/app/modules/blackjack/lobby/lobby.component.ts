@@ -198,6 +198,10 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   onLeaveTable() {
+    this.socketService.listServers.forEach(function(value) {
+        value.joined = false;
+    });
+
     this.socketService.socket.emit(SocketKey.LeaveTable, { roomId: this.table.id });
     this.router.navigate(['../'], { relativeTo: this.route });
   }

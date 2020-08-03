@@ -12,6 +12,7 @@ class BlackjackTable extends Table {
         super(id, name, password, tableType.Blackjack),
             this.difficulty = difficulty,
             this.bank = new Bank();
+            this.joined = false;
         this.addPlayerInTable(player, true);
     }
 
