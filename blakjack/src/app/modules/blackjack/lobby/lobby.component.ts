@@ -36,7 +36,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
   activity;
   playerInactivity: Subject<any> = new Subject();
   timer;
-  timerCountdown: Subject<any> = new Subject();
 
   isBetAmountCorrect = () => {
     return this.betAmount > 0 && this.betAmount <= this.player.credits;
@@ -86,6 +85,13 @@ export class LobbyComponent implements OnInit, OnDestroy {
     } else {
       this.router.navigate(['../'], { relativeTo: this.route });
     }
+
+    this.playerInactivity.subscribe(() => {
+      console.log('user has been inactive for 15s');
+      clearInterval(this.timer);
+      this.endRound();
+      this.timerBar.nativeElement.style.width = '0%';
+    });
   }
 
   private manageUI(data) {
@@ -96,23 +102,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
     );
     this.player = this.table.players.splice(playerIndex, 1)[0];
     this.isMyTurn = this.player.id === data.playerId;
-    //timerBar
-    if (this.isMyTurn) {
-      clearTimeout(this.timer);
-      this.setTimeout(10);
-      this.playerInactivity = new Subject();
-      this.timerCountdown = new Subject();
-      this.playerInactivity.subscribe(() => {
-        console.log('user has been inactive for 15s');
-        clearInterval(this.timer);
-        this.endRound();
-        this.timerBar.nativeElement.style.width = '0%';
-      });
-      this.timerCountdown.subscribe();
-    } else {
-      this.playerInactivity.complete();
-      this.refreshUserState();
-    }
     this.enableDrawBtn = data.isShownDrawButton && this.isMyTurn;
     this.enableEndTurn = this.isMyTurn && this.table.status === 'S';
     this.enableDoubleBtn = data.isShownDoubleButton && this.isMyTurn;
@@ -122,31 +111,35 @@ export class LobbyComponent implements OnInit, OnDestroy {
     if (this.table.id.includes(this.socketService.getConnectionId()) || this.table.adminId === this.socketService.getConnectionId()) {
       this.isAdmin = true;
     }
+
+    //timerBar
+    if (this.isMyTurn) {
+      this.refreshUserState();
+    }
   }
 
   setTimeout(count: number) {
     let time = -500;
-    if (this.timerBar) {
-      this.timerBar.nativeElement.style.width = '0%';
-    }
 
     this.timer = setInterval(() => {
       if (!this.isMyTurn) { this.refreshUserState(); }
-      this.timerCountdown.next();
       time++;
       if (this.timerBar) {
-        this.timerBar.nativeElement.style.width = ((time / 100 ) * 10).toString() + '%';
+        this.timerBar.nativeElement.style.width = (time / (count - 5) ).toString() + '%';
       }
     }, 10);
-    this.activity = setTimeout(() => this.playerInactivity.next(undefined), count * 1500);
+    this.activity = setTimeout(() => this.playerInactivity.next(undefined), count * 1000);
   }
 
   @HostListener('window:mousemove') @HostListener('click') refreshUserState() {
     clearTimeout(this.activity);
     clearTimeout(this.timer);
+    if (this.timerBar) {
+      this.timerBar.nativeElement.style.width = '0%';
+    }
 
     if (this.isMyTurn) {
-      this.setTimeout(10);
+      this.setTimeout(15);
     }
   }
 
