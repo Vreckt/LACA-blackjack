@@ -91,6 +91,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   private manageUI(data) {
+    console.log(data);
+    this.message = data.message ? data.message : '';
     this.table = JSON.parse(JSON.stringify(data.table));
     this.showTable = this.table.status === 'S' || this.table.status === 'B' || this.table.status === 'F';
     const playerIndex = this.table.players.findIndex(player =>

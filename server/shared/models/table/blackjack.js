@@ -3,7 +3,6 @@ const tableType = require('../../enum/tableType')
 const Bank = require('../bank.js');
 const ResponseBJAction = require('../../../shared/models/response/responseBlackJack');
 const Card = require('../../../shared/models/card');
-const { response } = require('express');
 
 
 class BlackjackTable extends Table {
@@ -15,15 +14,23 @@ class BlackjackTable extends Table {
         this.addPlayerInTable(player, true);
     }
 
-    drawCard(playerIndex, isBank = false) {
-        const card = this.drawCardFromDeck(1)[0];
+    drawCard(playerIndex, isBank = false, message = null) {
+        let response = new ResponseBJAction();
+        let player = null;
         if (isBank) {
-            this.bank.hand.push(card);
-            return this.createResponse(this.bank);
+            this.bank.hand.push(this.drawCardFromDeck(1)[0]);
+            player = this.bank;
+            response.message = message ? message : 'La banque pioche ';
+            response.message = message;
         } else {
-            this.addCardToPlayer(playerIndex, card);
-            return this.createResponse(this.players[playerIndex]);
+            this.addCardToPlayer(playerIndex, this.drawCardFromDeck(1)[0]);
+            player = this.players[playerIndex];
+            response.message = `${player.name} pioche `
         }
+        response = this.calculateHand(player, response);
+        response.drawCard = player.hand[player.hand.length - 1];
+        response.table = this;
+        return response;
     }
 
     doubleBet(playerIndex, currentPlayer) {
@@ -31,7 +38,7 @@ class BlackjackTable extends Table {
             this.players[playerIndex].credits -= currentPlayer.currentBet;
             this.players[playerIndex].currentBet = currentPlayer.currentBet * 2;
             this.players[playerIndex].hasDouble = true;
-            return this.drawCard(playerIndex);
+            return this.drawCard(playerIndex, false, `${currentPlayer.name} double !!`);
         } else {
             return `info-playerdonthavemoney`;
         }
@@ -41,19 +48,6 @@ class BlackjackTable extends Table {
         this.players[playerIndex].credits -= betMoney;
         this.players[playerIndex].currentBet = betMoney;
         return this.manageBet(this.players[playerIndex].id);
-    }
-
-    /**
-     * In DEV
-     */
-    drawAllCards() {
-        for (let i = 0; i < 2; i++) {
-            for (let p = 0; p < table.players.length; p++) {
-                const response = table.drawCard(p);
-                table.setScoreToPlayer(p, response.point);
-                io.in(data.roomId).emit(socketKeys.DrawCard, response);
-            }
-        }
     }
 
     playerEnds(response) {
@@ -93,7 +87,7 @@ class BlackjackTable extends Table {
         return this.drawCardFromDeck(1)[0];
     }
 
-    calculateHand(player) {
+    calculateHand(player, resp = null) {
         console.log(player)
         const listCards = player.hand;
         let point = 0;
@@ -119,23 +113,36 @@ class BlackjackTable extends Table {
                 isWin = true;
             }
         }
-        const response = new ResponseBJAction();
+        let response = resp;
+        if (!resp) {
+            response = new ResponseBJAction();
+        }
         response.playerId = player ? player.id : null;
         response.point = point;
         response.isWin = isWin;
         response.isBlackJack = isBlackJack;
+        if (isWin) {
+            if(isBlackJack) {
+                response.message += `et à Blackjack !`;
+            } else {
+                response.message += `et à ${point}`;
+            }
+        } else {
+            response.message += `et à plus que 21 !`;
+        }
         response.isShownDrawButton = player ? (point < 21) && !player.hasDouble : false;
         response.isShownDoubleButton = (listCards.length < 3) && response.isShownDrawButton;
         return response;
     };
 
-    createResponse(player) {
+    createResponse(player, message = '') {
         let response = new ResponseBJAction();
         if (this.isStarted()) {
             response = this.calculateHand(player);
             response.drawCard = player.hand[player.hand.length - 1];
         }
         response.table = this;
+        response.message = message;
         return response
     }
 
@@ -151,6 +158,7 @@ class BlackjackTable extends Table {
         const response = new ResponseBJAction();
         response.table = this;
         response.playerId = playerId;
+        response.message = 'Misez !!';
         return response;
     }
 

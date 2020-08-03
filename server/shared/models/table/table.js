@@ -1,4 +1,5 @@
 const Card = require('../card');
+const ServerResponse = require('../response/server-Response');
 
 
 class Table {
@@ -16,8 +17,8 @@ class Table {
 
   getPlayers() { return this.players.slice(); }
 
-  betTable() { this.status = 'B';}
-  startedTable() { 
+  betTable() { this.status = 'B'; }
+  startedTable() {
     this.status = 'S';
   }
   finishedTable() { this.status = 'F'; }
@@ -55,6 +56,7 @@ class Table {
       if (isAdmin) {
         this.adminId = player.id;
       }
+      return `${player.name} à rejoint la partie !`;
     }
   }
 
@@ -64,11 +66,8 @@ class Table {
         const { nextPlayer } = this.getNextPlayer(player.id);
         this.adminId = nextPlayer.id;
       }
-      
-    return this.players.splice(this.players.findIndex(p => p.id === player.id), 1);
-
-    } else {
-      return null;
+      this.players.splice(this.players.findIndex(p => p.id === player.id), 1);
+      return this;
     }
   }
 
@@ -96,11 +95,25 @@ class Table {
       if (['A', 'J', 'Q', 'K'].includes(cardDraw.rank.shortName)) {
         card.value = cardDraw.rank.shortName === 'A' ? 11 : 10;
       } else {
-          card.value = +card.shortName;
+        card.value = +card.shortName;
       }
       cardList.push(card);
     }
     return cardList;
+  }
+
+  joinTable(player, message = '') {
+    let response = new ServerResponse();
+    response.table = this;
+    response.message = `${player.name} à rejoint la partie !`;
+    return response
+  }
+
+  leaveTable(player, message = '') {
+    let response = new ServerResponse();
+    response.table = this;
+    response.message = `${player.name} à quitté la partie !`;
+    return response
   }
 }
 
