@@ -15,7 +15,7 @@ import { Subject } from 'rxjs';
 export class LobbyComponent implements OnInit, OnDestroy {
 
   @ViewChild('timerBar') timerBar: ElementRef;
-  
+
   BETUMBER_ALLOWED_CHARS_REGEXP = /[0-9\/]+/;
 
   icon = 1;
@@ -32,17 +32,14 @@ export class LobbyComponent implements OnInit, OnDestroy {
   canBetButton = false;
   betAmount = 0;
   isMyTurn = false;
+  message = 'Welcome !';
+  activity;
+  playerInactivity: Subject<any> = new Subject();
+  timer;
 
   isBetAmountCorrect = () => {
     return this.betAmount > 0 && this.betAmount <= this.player.credits;
   }
-
-  message = 'Welcome !';
-
-  activity;
-  playerInactivity: Subject<any> = new Subject();
-  timer;
-  timerCountdown: Subject<any> = new Subject();
 
   constructor(
     private route: ActivatedRoute,
@@ -88,6 +85,13 @@ export class LobbyComponent implements OnInit, OnDestroy {
     } else {
       this.router.navigate(['../'], { relativeTo: this.route });
     }
+
+    this.playerInactivity.subscribe(() => {
+      console.log('user has been inactive for 15s');
+      clearInterval(this.timer);
+      this.endRound();
+      this.timerBar.nativeElement.style.width = '0%';
+    });
   }
 
   private manageUI(data) {
@@ -98,22 +102,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
     );
     this.player = this.table.players.splice(playerIndex, 1)[0];
     this.isMyTurn = this.player.id === data.playerId;
-    //timerBar
-    if (this.isMyTurn) {
-      setTimeout(() => {
-        clearTimeout(this.timer);
-        this.setTimeout(10);
-        this.playerInactivity = new Subject();
-        this.timerCountdown = new Subject();
-        this.playerInactivity.subscribe(() => {
-          console.log('user has been inactive for 10s');
-          clearInterval(this.timer);
-        });
-        this.timerCountdown.subscribe();
-      }, 5000);
-    } else {
-      this.playerInactivity.complete();
-    }
     this.enableDrawBtn = data.isShownDrawButton && this.isMyTurn;
     this.enableEndTurn = this.isMyTurn && this.table.status === 'S';
     this.enableDoubleBtn = data.isShownDoubleButton && this.isMyTurn;
@@ -123,28 +111,35 @@ export class LobbyComponent implements OnInit, OnDestroy {
     if (this.table.id.includes(this.socketService.getConnectionId()) || this.table.adminId === this.socketService.getConnectionId()) {
       this.isAdmin = true;
     }
+
+    //timerBar
+    if (this.isMyTurn) {
+      this.refreshUserState();
+    }
   }
 
   setTimeout(count: number) {
-    let time = 1;
-    if (this.timerBar) {
-      this.timerBar.nativeElement.style.width = '0%';
-    }
+    let time = -500;
+
     this.timer = setInterval(() => {
-      this.timerCountdown.next();
+      if (!this.isMyTurn) { this.refreshUserState(); }
       time++;
       if (this.timerBar) {
-        this.timerBar.nativeElement.style.width = ((time / 100 ) * 10).toString() + '%';
+        this.timerBar.nativeElement.style.width = (time / (count - 5) ).toString() + '%';
       }
     }, 10);
     this.activity = setTimeout(() => this.playerInactivity.next(undefined), count * 1000);
   }
 
-  @HostListener('window:mousemove') refreshUserState() {
+  @HostListener('window:mousemove') @HostListener('click') refreshUserState() {
     clearTimeout(this.activity);
     clearTimeout(this.timer);
+    if (this.timerBar) {
+      this.timerBar.nativeElement.style.width = '0%';
+    }
+
     if (this.isMyTurn) {
-      this.setTimeout(10);
+      this.setTimeout(15);
     }
   }
 
@@ -289,6 +284,8 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
     this.socketService.listen(SocketKey.BankShowCard).subscribe((data: any) => {
       this.table.bank = data.table.bank;
+      this.isMyTurn = false;
+      this.refreshUserState();
     });
 
     this.socketService.listen(SocketKey.BankDrawCard).subscribe((data: any) => {
