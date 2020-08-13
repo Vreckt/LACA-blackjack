@@ -1,6 +1,7 @@
 const environnement = require('./src/environments/environnement');
 const package = require('./package');
 const express = require('express');
+const { Server } = require('http');
 const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server);
