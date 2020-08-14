@@ -6,6 +6,8 @@ const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 const socketEnum = require('./src/app/shared/enums/socket-enum');
 
+const Table = require('./src/app/shared/models/table');
+
 //#region MANAGER
 const ServerManager = require('./src/app/shared/models/managers/server-manager');
 const manager = new ServerManager();
@@ -27,13 +29,13 @@ io.on(socketEnum.Connection, (socket) => {
     /**
      * This socket is in progress
      */
-    // socket.on(socketKeys.NewLobby, (data) => {
-    //     const roomId = manager.createServerId(32, player.id);
-    //     if (!manager.servers.has(roomId)) {
-    //         // TODO CREATE TABLE
-    //         manager.addTable(roomId, table);
-    //         io.to(socket.id).emit(socketKeys.NewLobby, new NewLobbyResponse(roomId, data.roomName));
-    //         socket.broadcast.emit(socketKeys.UpdateLobby, manager.servers);
-    //     }
-    // });
+    socket.on(socketKeys.NewLobby, (data) => {
+        const roomId = manager.createServerId(32, player.id);
+        if (roomId && !manager.servers.has(roomId) && data && data.roomName && user.userId) {
+            const table = new Table(roomId, data.roomName, data.password, user.userId, data.difficulty);
+            manager.addTable(roomId, table);
+            io.to(socket.id).emit(socketKeys.NewLobby, new NewLobbyResponse(roomId, data.roomName));
+            socket.broadcast.emit(socketKeys.UpdateLobby, manager.servers);
+        }
+    });
 });
