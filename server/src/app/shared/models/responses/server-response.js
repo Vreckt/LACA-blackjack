@@ -16,7 +16,7 @@ class NewLobbyResponse extends BaseResponse {
     }
 }
 
-class NewPlayerInGame extends BaseResponse {
+class NewPlayerInGameResponse extends BaseResponse {
     constructor (userId = '', table = '') {
         super();
         this.userId = userId;
@@ -24,10 +24,17 @@ class NewPlayerInGame extends BaseResponse {
     }
 }
 
-class NewPlayerInGame extends BaseResponse {
+class KickedPlayerResponse extends BaseResponse {
     constructor (kickPlayer = '') {
         super();
         this.kickPlayer = kickPlayer;
+    }
+}
+
+class ListServerResponse extends BaseResponse {
+    constructor (serverList = '') {
+        super();
+        this.servers = serverList;
     }
 }
 
@@ -35,6 +42,8 @@ class NewPlayerInGame extends BaseResponse {
 module.exports = {
     ConnectedResponse,
     NewLobbyResponse,
-    NewPlayerInGame
+    NewPlayerInGameResponse,
+    KickedPlayerResponse,
+    ListServerResponse
 };
 

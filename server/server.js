@@ -38,7 +38,7 @@ io.on(socketEnum.Connection, (socket) => {
 
     socket.on(socketEnum.JOINGAME, (data) => {
         if (manager.isTableExist(data.roomId)) {
-            const table = manager.servers.get(data.roomId);
+            const table = manager.serverList.get(data.roomId);
             if (!table.hasPlayer(player.id)) {
                 // TODO ADD PLAYER IN GAME
                 const response = ''; // TODO CREATE RESPONSE
@@ -55,38 +55,24 @@ io.on(socketEnum.Connection, (socket) => {
 
     socket.on(socketEnum.KICKPLAYER, (data) => {
         if (data && data.roomId && data.currentPlayerId && data.kickPlayerId) {
-            if (manager.servers.get(data.roomId).adminId === data.currentPlayerId) {
+            if (manager.serverList.get(data.roomId).adminId === data.currentPlayerId) {
                 io.to(data.roomId).emit(socketEnum.KICKPLAYER, manager.kickPlayer(data.kickPlayerId));
             }
         }
     });
 
     //TODO
-    // socket.on(socketKeys.LeaveTable, (data) => {
-    //     if (listServer.has(data.roomId)) {
-    //         let table = listServer.get(data.roomId);
-    //         let response = new ServerResponse(table, player.id);
-    //         socket.leave(data.roomId);
-    //         if (table.players.length === 1) {
-    //             listServer.delete(data.roomId);
-    //             socket.broadcast.emit(socketKeys.UpdateLobby, { servers: extractServerName() });
-    //         } else {
-    //             const { nextPlayer, nextPlayerIndex } = table.getNextPlayer(player.id);
-    //             if (table.currentPlayer === player.id && nextPlayerIndex < table.players.length) {
-    //                 table.currentPlayer = nextPlayer.id;
-    //                 switch (table.type) {
-    //                     case tableType.Blackjack:
-    //                         table.currentPlayer = nextPlayer.id;
-    //                         response = table.createResponse(nextPlayer);
-    //                         break;
-    //                 }
-    //             }
-    //             table.removePlayer(player);
-    //             response = table.leaveTable(player);
-    //         }
-    //         socket.to(data.roomId).emit(socketKeys.PlayerLeave, response);
-    //     }
-    // });
+    socket.on(socketKeys.LEAVEGAME, (data) => {
+        if (manager.isTableExist(data.roomId)) {
+            let response = new ServerResponse(table, player.id); // a déplacer dans l'objet Table dans leave ?
+            socket.leave(data.roomId);
+            if (manager.serverList.get(data.roomId).players.length === 1) {
+                socket.broadcast.emit(socketKeys.UpdateLobby, manager.removeTable(data.roomId));
+            } else {
+                socket.to(data.roomId).emit(socketKeys.PlayerLeave, manager.playerLeaveGame(data.roomId, player.id));
+            }
+        }
+    });
 
     // socket.on(socketKeys.Action, (data) => {
     //     if (listServer.has(data.roomId)) {

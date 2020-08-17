@@ -2,7 +2,9 @@ const { BaseResponse } = require("../responses/base-response");
 const { 
     ConnectedResponse,
     NewLobbyResponse,
-    NewPlayerInGame
+    NewPlayerInGameResponse,
+    KickedPlayerResponse,
+    ListServerResponse
 } = require("../responses/server-response");
 const Table = require('../table');
 
@@ -15,14 +17,14 @@ class ServerManager {
         this.countConnectedUser = 0;
     }
 
+    //#region Table
     addTable(roomId, table) {
         this.serverList.set(roomId, table);
     }
-
-    removeTable(table) {
-        this.serverList = [];
+    removeTable(roomId) {
+        this.serverList.delete(roomId);
+        return this.createListServerResponse();
     }
-
     isTableExist(roomId) {
         return this.serverList.has(roomId);
     }
@@ -30,10 +32,52 @@ class ServerManager {
     get servers() {
         return Array.from(this.serverList.values());
     }
+    //#endregion Table
 
+    //#region User
     addUser(user) {
         this.countConnectedUser++;
         this.userList.push(user);
+    }
+
+    removeUser(user) {
+        this.countConnectedUser--;
+        this.userList.splice(this.userList.findIndex(u => u.id === user.id), 1);
+    }
+
+    get users() {
+        return this.userList.slice();
+    }
+
+    playerLeaveGame(roomId, userId) {
+        //TODO (copié collé de serveur je dois le réadapter) (Ligne 74)
+        const table = this.serverList.get(roomId);
+        const userIndex = table.players.findIndex(p => p.id === userId);
+        let response
+        if (table.currentPlayer === player.id && (userIndex + 1) < table.players.length) {
+            table.currentPlayer = table.players[userIndex + 1].id;
+            switch (table.type) {
+                case tableType.Blackjack: {
+                    response = table.createResponse(nextPlayer);
+                    break;
+                }
+            }
+        }
+        table.removePlayer(player);
+        response = table.leaveTable(player);
+        return response;
+    }
+    //#endregion User
+
+    /**
+     * This method allow to kick a player with his ID
+     * @param {*} playerToKickId 
+     */
+    kickPlayer(playerToKickId) {
+        const playerKicked = manager.userList.find(p => p.id === playerToKickId);
+        if (playerKicked) {
+            return this.createKickedPlayerResponse(playerKicked)
+        }
     }
 
     userInitConnection(user, socket) {
@@ -46,49 +90,12 @@ class ServerManager {
         }
     }
 
-    removeUser(user) {
-        this.countConnectedUser--;
-        // this.addUser.push(user);
-    }
-
-    get users() {
-        return this.userList.slice();
-    }
-
-    generateAdminPage(process) {
-        return `
-            <html><head></head><body>
-            UPTIME: ${Math.round(process.uptime())} secondes <br/>
-            UserConnected: ${this.countConnectedUser} <br/>
-            RoomCreated: ${this.servers.length}
-            </body></html>
-        `
-    }
-
-    createServerId(length = 64, playerId) {
-        let result = '';
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        const charactersLength = characters.length;
-        for (var i = 0; i < length; i++) {
-            result += characters.charAt(Math.floor(Math.random() * charactersLength));
-        }
-        return result + playerId;
-    }
-
-    generateError(message) {
-        const error = new BaseResponse();
-        error.isSuccess = false;
-        error.errorMessage = message;
-        return error;
-    }
-
-    kickPlayer(playerToKickId) {
-        const playerKicked = manager.userList.find(p => p.id === playerToKickId);
-        if (playerKicked) {
-            return this.createKickedPlayerResponse(playerKicked)
-        }
-    }
-
+    /**
+     * This method allow to create distinc Table with the tableType
+     * @param {*} tableType 
+     * @param {*} userId 
+     * @param {*} data 
+     */
     createTable (tableType, userId, data) {
         let table = null;
         switch (tableType) {
@@ -103,6 +110,47 @@ class ServerManager {
         }
         return table;
     }
+
+    /**
+     * This method allow to create a BaseResponse with an error message
+     * @param {*} message 
+     */
+    generateError(message) {
+        const error = new BaseResponse();
+        error.isSuccess = false;
+        error.errorMessage = message;
+        return error;
+    }
+
+    /**
+     * This method provide a solution to generate a unique ID for a table
+     * @param {*} length 
+     * @param {*} playerId 
+     */
+    createServerId(length = 64, playerId) {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const charactersLength = characters.length;
+        for (var i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result + playerId;
+    }
+
+    /**
+     * This method allow to provide a resume page
+     * @param {*} process 
+     */
+    generateAdminPage(process) {
+        return `
+            <html><head></head><body>
+            UPTIME: ${Math.round(process.uptime())} secondes <br/>
+            UserConnected: ${this.countConnectedUser} <br/>
+            RoomCreated: ${this.servers.length}
+            </body></html>
+        `
+    }
+
     //#region CREATE RESPONSE
     createConnectedResponse(socketId) {
         return new ConnectedResponse(socketId, this.servers);
@@ -113,11 +161,15 @@ class ServerManager {
     }
 
     createKickedPlayerResponse(playerKick) {
-        return new NewLobbyResponse(playerKick);
+        return new KickedPlayerResponse(playerKick);
     }
 
     createNewPlayerInGameResponse(userId, table) {
-        return new NewPlayerInGame(userId, table);
+        return new NewPlayerInGameResponse(userId, table);
+    }
+
+    createListServerResponse() {
+        return new ListServerResponse(this.servers);
     }
     //#endregion CREATE RESPONSE
 }
