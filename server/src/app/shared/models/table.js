@@ -25,12 +25,6 @@ class Table {
         return false;
     }
 
-    addUserInTable(player) {
-        if(!this.hasUser(player.user.id)) {
-            this.players.push(player);
-        }
-    }
-
     removeUser(id) {
         if(this.hasUser(id)) {
             if(this.adminId === id) {
