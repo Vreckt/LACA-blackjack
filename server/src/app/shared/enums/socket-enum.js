@@ -1,17 +1,17 @@
 module.exports = {
-    Init: 'init',
+    INIT: 'init',
 
     // Lobby
-    NewLobby: 'n-lobby',
-    UpdateLobby: 'u-lobby',
+    CREATENEWGAME: 'c-lobby',
+    UPDATEGAME: 'u-lobby',
   
     // Table
-    JoinTable: 'j-table',
-    LeaveTable: 'l-table',
+    JOINGAME: 'j-table',
+    LEAVEGAME: 'l-table',
   
     // Player Action
-    PlayerJoin: 'p-join',
-    PlayerLeave: 'p-leave',
+    PLAYERJOIN: 'p-join',
+    PLAYERLEAVE: 'p-leave',
     PlayerTurn: 'p-turn',
     PlayerEnd: 'p-end',
     PlayerKick: 'p-kick',
