@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "clean": "rm -rf dist",
+    "cleanw": "rd /s /q dist",
     "deploy": "npm run clean && mkdir dist && babel --ignore */node_modules ./ --out-dir -s -d ./dist --copy-files",
+    "deployw": "npm run cleanw && mkdir dist && babel --ignore */node_modules ./ --out-dir -s -d ./dist --copy-files",
     "fulldeploy": "npm run deploy && cd dist && npm install"
   },
   "author": "Alex - Logan - Vita",

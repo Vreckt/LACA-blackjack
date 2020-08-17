@@ -12,9 +12,9 @@ module.exports = {
     // Player Action
     PLAYERJOIN: 'p-join',
     PLAYERLEAVE: 'p-leave',
+    KICKPLAYER: 'p-kick',
     PlayerTurn: 'p-turn',
     PlayerEnd: 'p-end',
-    PlayerKick: 'p-kick',
     PlayerBet: 'p-bet',
     PlayerDouble: 'p-double',
 
