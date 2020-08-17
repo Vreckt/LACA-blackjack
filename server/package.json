@@ -5,14 +5,26 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "clean": "rm -rf dist",
+    "deploy": "npm run clean && mkdir dist && babel --ignore */node_modules ./ --out-dir -s -d ./dist --copy-files",
+    "fulldeploy": "npm run deploy && cd dist && npm install"
   },
   "author": "Alex - Logan - Vita",
   "license": "ISC",
+  "private": true,
   "dependencies": {
     "ent": "^2.2.0",
     "express": "^4.17.1",
     "rand-utils": "^1.0.0",
     "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0"
+  },
+  "babel": {
+    "ignore": [
+      "/node_modules/"
+    ]
   }
 }
