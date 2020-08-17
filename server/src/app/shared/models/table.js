@@ -12,9 +12,9 @@ class Table {
         this.status = statusEnum.NotStart;
     }
 
-    getPlayers() { return this.players.slice(); }
+    get getPlayers() { return this.players.slice() } 
 
-    updateStatus(status) { this.status = status }
+    set status(status) { this.status = status }
 
     updateConfig() { }
     
@@ -26,13 +26,13 @@ class Table {
     }
 
     addUserInTable(player) {
-        if(!this.hasPlayer(player.user.id)) {
+        if(!this.hasUser(player.user.id)) {
             this.players.push(player);
         }
     }
 
-    removePlayer(id) {
-        if(this.hasPlayer(id)) {
+    removeUser(id) {
+        if(this.hasUser(id)) {
             if(this.adminId === id) {
                 const { nextPlayer } = this.getNextPlayer(player.user.id);
                 this.adminId + nextPlayer.user.id;
@@ -43,6 +43,12 @@ class Table {
             return null;
         }
     }
+
+    getNextPlayer(playerId) {
+        const nextPlayerIndex = this.players.findIndex(p => p.user.id === playerId) + 1;
+        // const nextPlayer = this.players[nextPlayerIndex]; // Check if needed later
+        return nextPlayerIndex;
+      }
 
     clean() { }
 
