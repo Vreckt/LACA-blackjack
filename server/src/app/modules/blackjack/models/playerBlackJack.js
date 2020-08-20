@@ -11,6 +11,8 @@ class PlayerBlackJack{
         this.isBlackjack = false;
     }
 
+    getUser() { return this.user };
+
     calculateHand() {
         const sortedCardList = this.hand.slice().sort((a, b) => { return a.value - b.value });
         for (const card of sortedCardList) {
