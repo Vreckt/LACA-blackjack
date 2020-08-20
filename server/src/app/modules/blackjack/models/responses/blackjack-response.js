@@ -1,3 +1,8 @@
+
+/**
+ * ATTENTION =>  extends BaseResponse
+ */
+
 class BlackjackResponse {
     table = null;
     playerId = null;
@@ -6,4 +11,6 @@ class BlackjackResponse {
     isBlackJack = null;
 }
 
-module.exports = BlackjackResponse ;
+module.exports = {
+    BlackjackResponse
+};

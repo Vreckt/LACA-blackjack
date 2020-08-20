@@ -9,3 +9,5 @@ class User {
     changeName() { }
     changeIcon() { }
 } 
+
+module.exports = User;

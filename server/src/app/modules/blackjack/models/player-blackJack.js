@@ -1,14 +1,12 @@
-const User = require('../../../shared/models/user');
-
 class PlayerBlackJack{
-    constructor(user) {
+    constructor(user = null) {
         this.user = user;
         this.hasDouble = false;
         this.currentBet = 0;
         this.score = 0;
         this.hand = [];
         this.isWin = false;
-        this.isBlackjack = false;
+        this.isBlackJack = false;
     }
 
     getUser() { return this.user };

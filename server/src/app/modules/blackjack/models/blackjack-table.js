@@ -1,45 +1,40 @@
 const Table = require('../../../shared/models/table');
-const Bank = require('./playerBlackJack');
+const PlayerBlackJack = require('./player-blackJack');
 const Card = require('../../../shared/models/card');
 const ResponseBlackjack = require('./responses/blackjack-response');
+const User = require('../../../shared/models/user');
 
 class BlackjackTable extends Table {
-    constructor(id, name, password, adminId, difficulty,user) {
+  
+    constructor(id, name, password, adminId, difficulty) {
         super(id, name, password, adminId, difficulty),
         this.deck = [];
         this.currentPlayer = '';
-        this.bank = new Bank(user);
+        this.bank = new PlayerBlackJack(new User(0, 'BANK', 0, 0));
     }
 
-    drawCard(playerIndex) {
+    drawCard(playerId) {
         const card = this.drawCardFromDeck(1)[0];
-        this.addCardToPlayer(playerIndex, card);
+        this.players.find(p => p.id === playerId).hand.push(card);
         return card;
+        // TODO => create response in manager (card ; playerId ; table ; calculateHand())
+    }
+
+    callMe(call) {
+      return 'call moi pas fdp' + ' ' + call;
     }
     
-    addPlayer(isAdmin = false) {
-      let player = this.bank.getUser();
-      if (!this.hasPlayer(player.id)) {
-        this.players.push(player);
-        if (isAdmin) {
-          this.adminId = player.id;
-        }
+    addPlayer(user) {
+      const pBJ = new PlayerBlackJack();
+      pBJ.user = user;
+      // TODO => A vérifier si la référence du user est bien copiée... (normalement c'est bon)
+      if (!this.hasUser(pBJ.user.id)) {
+        this.players.push(pBJ);
       }
-    }
-
-    hasPlayer(playerId) {
-      if (this.players.find(p => p.id === playerId)) {
-        return true;
-      }
-      return false;
-    }
-
-    addCardToPlayer(index, card) {
-        this.players[index].hand.push(card);
     }
 
     clean() {
-        this.bank = new Bank('');
+        this.bank = new PlayerBlackJack(new User(0, 'BANK', 0, 0));
         this.currentPlayer = '';
         this.deck = [];
         for (const player of this.players) {
@@ -54,8 +49,8 @@ class BlackjackTable extends Table {
         return true
     }
 
-    drawCardFromDeck(nbCards) {
-        const cards = this.deck.draw(nbCards);
+    drawCardsFromDeck(nbCardsToDraw) {
+        const cards = this.deck.draw(nbCardsToDraw);
         let cardList = [];
         for (const cardDraw of cards) {
           const card = new Card(cardDraw.rank.shortName + cardDraw.suit.name, cardDraw.rank.shortName, true, 0);
@@ -69,49 +64,61 @@ class BlackjackTable extends Table {
         return cardList;
     }
 
-    doubleBet(playerIndex, currentPlayer) {
-      if (currentPlayer.currentBet * 2 <= currentPlayer.credits) {
-          this.players[playerIndex].credits -= currentPlayer.currentBet;
-          this.players[playerIndex].currentBet = currentPlayer.currentBet * 2;
-          this.players[playerIndex].hasDouble = true;
-          return this.drawCard(playerIndex);
+    /*
+      MOVE TO MANAGER
+    */
+    doubleBet(index, player) {
+      if (player.currentBet * 2 <= player.credits) {
+          this.players[index].user.credits -= player.user.currentBet;
+          this.players[index].currentBet = player.currentBet * 2;
+          this.players[index].hasDouble = true;
+          return this.drawCard(this.players[index].user.id);
       } else {
           return `info-playerdonthavemoney`;
       }
     }
 
+    /*
+      MOVE TO MANAGER
+    */
     playerBet(betMoney, playerIndex) {
-      this.players[playerIndex].credits -= betMoney;
+      this.players[playerIndex].user.credits -= betMoney;
       this.players[playerIndex].currentBet = betMoney;
+      // TODO => implement correct response
       const response = new ResponseBlackjack();
       response.table = this;
-      response.playerId = this.players[playerIndex].id;
+      response.playerId = this.players[playerIndex].user.id;
       return response;
     }
 
+    /*
+      MANAGER
+    */
     bankEndDraw(point) {
       let cardsDraw = this.bank.hand.slice();
       while (point < 17) {
-          cardsDraw.push(this.bankDrawCard());
+          cardsDraw.push(this.drawCardFromDeck(1)[0]);
           point = this.createResponseByCalculatedHand();
       }
       return cardsDraw;
     }
 
+    
+
+    //#region check before clean
+    addCardToPlayer(playerId, card) {
+      this.players.find(p => p.id === playerId).hand.push(card);
+    }
+    hasPlayer(playerId) {
+      if (this.players.find(p => p.id === playerId)) {
+        return true;
+      }
+      return false;
+    }
     bankDrawCard() {
       return this.drawCardFromDeck(1)[0];
     }
-
-    createResponseByCalculatedHand() {
-      this.bank.calculateHand();
-      const response = new ResponseBlackjack();
-      response.playerId = this.bank.user.id;
-      response.score = this.bank.score;
-      response.isWin = this.bank.isWin;
-      response.isBlackJack = this.bank.isBlackJack;
-      return response;
-    }
-
+    //#endregion check before clean
 }
 
 module.exports = BlackjackTable;

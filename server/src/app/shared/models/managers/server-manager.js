@@ -7,6 +7,7 @@ const {
     ListServerResponse
 } = require("../responses/server-response");
 const Table = require('../table');
+const BlackjackTable = require("../../../modules/blackjack/models/blackjack-table");
 
 class ServerManager {
 
@@ -100,7 +101,7 @@ class ServerManager {
         let table = null;
         switch (tableType) {
             case tableType.BLACKJACK: {
-                table = new Table(this.createServerId(32, userId), userId, data.roomName, data.password, data.difficulty);
+                table = new BlackjackTable(this.createServerId(32, userId),data.roomName, data.password, userId, data.difficulty);
                 break;
             }
             default: { table = null; break; }

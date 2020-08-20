@@ -14,7 +14,7 @@ class Table {
 
     get getPlayers() { return this.players.slice() } 
 
-    set status(status) { this.status = status }
+    // set status(status) { this.status = status }
 
     updateConfig() { }
     
