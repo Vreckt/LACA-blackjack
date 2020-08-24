@@ -3,6 +3,7 @@ const PlayerBlackJack = require('./player-blackJack');
 const Card = require('../../../shared/models/card');
 const ResponseBlackjack = require('./responses/blackjack-response');
 const User = require('../../../shared/models/user');
+const BlackjackManager = require('./managers/blackjack-manager');
 
 class BlackjackTable extends Table {
   
@@ -14,10 +15,11 @@ class BlackjackTable extends Table {
     }
 
     drawCard(playerId) {
+      // TODO => create response in manager (card ; playerId ; table ; calculateHand())
         const card = this.drawCardFromDeck(1)[0];
         this.players.find(p => p.id === playerId).hand.push(card);
-        return card;
-        // TODO => create response in manager (card ; playerId ; table ; calculateHand())
+        let response = BlackjackManager.createResponse(this,player);
+        return response;
     }
 
     callMe(call) {
@@ -63,45 +65,7 @@ class BlackjackTable extends Table {
         }
         return cardList;
     }
-
-    /*
-      MOVE TO MANAGER
-    */
-    doubleBet(index, player) {
-      if (player.currentBet * 2 <= player.credits) {
-          this.players[index].user.credits -= player.user.currentBet;
-          this.players[index].currentBet = player.currentBet * 2;
-          this.players[index].hasDouble = true;
-          return this.drawCard(this.players[index].user.id);
-      } else {
-          return `info-playerdonthavemoney`;
-      }
-    }
-
-    /*
-      MOVE TO MANAGER
-    */
-    playerBet(betMoney, playerIndex) {
-      this.players[playerIndex].user.credits -= betMoney;
-      this.players[playerIndex].currentBet = betMoney;
-      // TODO => implement correct response
-      const response = new ResponseBlackjack();
-      response.table = this;
-      response.playerId = this.players[playerIndex].user.id;
-      return response;
-    }
-
-    /*
-      MANAGER
-    */
-    bankEndDraw(point) {
-      let cardsDraw = this.bank.hand.slice();
-      while (point < 17) {
-          cardsDraw.push(this.drawCardFromDeck(1)[0]);
-          point = this.createResponseByCalculatedHand();
-      }
-      return cardsDraw;
-    }
+    
 
     
 
