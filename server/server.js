@@ -74,109 +74,109 @@ io.on(socketEnum.Connection, (socket) => {
         }
     });
 
-    // socket.on(socketKeys.Action, (data) => {
-    //     if (listServer.has(data.roomId)) {
-    //         let table = listServer.get(data.roomId);
-    //         const playerIndex = table.players.findIndex(p => p.id === data.playerId);
-    //         switch (data.actionKeys) {
-    //             case socketKeys.DrawCard: {
-    //                 if (table.hasPlayer(data.playerId)) {
-    //                     response = table.drawCard(playerIndex);
-    //                     table.setScoreToPlayer(playerIndex, response.point);
-    //                     io.in(data.roomId).emit(socketKeys.DrawCard, response);
-    //                 }
-    //                 break;
-    //             }
-    //             case socketKeys.PlayerDouble: {
-    //                 if (table.hasPlayer(data.playerId)) {
-    //                     let response = table.doubleBet(playerIndex, table.players[playerIndex]);
-    //                     table.setScoreToPlayer(playerIndex, response.point);
-    //                     listServer.set(data.roomId, table);
-    //                     io.in(data.roomId).emit(socketKeys.PlayerBet, response);
-    //                 }
-    //                 break;
-    //             }
-    //             case socketKeys.PlayerBet: {
-    //                 if (table.hasPlayer(data.playerId)) {
-    //                     if (data.betMoney > 0 && data.betMoney <= table.players[playerIndex].credits) {
-    //                         io.in(data.roomId).emit(socketKeys.PlayerBet, table.playerBet(data.betMoney, playerIndex));
-    //                         if (table.isPlayersAllBet()) {
-    //                             table.startedTable();
-    //                             table.deck = new decks.StandardDeck({ nbDeck: table.difficulty });
-    //                             table.deck.shuffleAll();
-    //                             for (let i = 0; i < 2; i++) {
-    //                                 setTimeout(() => {
-    //                                     for (let p = 0; p <= table.players.length; p++) {
-    //                                         setTimeout(() => {
-    //                                             if (p !== table.players.length) {
-    //                                                 const response = table.drawCard(p);
-    //                                                 table.setScoreToPlayer(p, response.point);
-    //                                                 io.in(data.roomId).emit(socketKeys.DrawCard, response);
-    //                                             } else {
-    //                                                 const response = table.drawCard(table.bank, true);
-    //                                                 if (table.bank.hand.length > 1) {
-    //                                                     table.bank.hand[1].visible = false;
-    //                                                 }
-    //                                                 io.in(data.roomId).emit(socketKeys.DrawCard, response);
-    //                                             }
-    //                                         }, p * 1300);
-    //                                     }
-    //                                 }, i * 1300 * (table.players.length + 1));
-    //                             }
-    //                             setTimeout(() => {
-    //                                 table.setCurrentPlayerTurn(table.players[0].id);
-    //                                 io.in(data.roomId).emit(socketKeys.PlayerTurn, table.createResponse(table.players[0]));
-    //                             }, (table.players.length + 1) * 2600);
-    //                         }
-    //                     } else {
-    //                         console.log('info-playerNoMoney');
-    //                     }
-    //                 }
-    //                 break;
-    //             }
-    //             case socketKeys.PlayerEnd: {
-    //                 if (table.players.findIndex(p => p.id === data.playerId) === (table.players.length - 1)) {
-    //                     let response = table.calculateHand(table.bank);
-    //                     io.in(data.roomId).emit(socketKeys.BankShowCard, table.playerEnds(response));
-    //                     if (response.point < 17) {
-    //                         const drawedCards = table.bankEndDraw(response.point);
-    //                         for (let i = 2; i < drawedCards.length; i++) {
-    //                             setTimeout(() => {
-    //                                 if (i === drawedCards.length - 1) {
-    //                                     response.table = table.manageEndGame();
-    //                                     io.in(data.roomId).emit(socketKeys.FinishGame, response);
-    //                                 } else {
-    //                                     io.in(data.roomId).emit(socketKeys.BankDrawCard, table.bankDrawCard(drawedCards[i]));
-    //                                 }
-    //                             }, i * 1000);
-    //                         }
-    //                     } else {
-    //                         response.table = table.manageEndGame();
-    //                         io.in(data.roomId).emit(socketKeys.FinishGame, response);
-    //                         console.log("Finish game with no cards draw by the bank");
-    //                     }
+    socket.on(socketKeys.Action, (data) => {
+        if (listServer.has(data.roomId)) {
+            let table = listServer.get(data.roomId);
+            const playerIndex = table.players.findIndex(p => p.id === data.playerId);
+            switch (data.actionKeys) {
+                case socketKeys.DrawCard: {
+                    if (table.hasPlayer(data.playerId)) {
+                        response = table.drawCard(playerIndex);
+                        table.setScoreToPlayer(playerIndex, response.point);
+                        io.in(data.roomId).emit(socketKeys.DrawCard, response);
+                    }
+                    break;
+                }
+                case socketKeys.PlayerDouble: {
+                    if (table.hasPlayer(data.playerId)) {
+                        let response = table.doubleBet(playerIndex, table.players[playerIndex]);
+                        table.setScoreToPlayer(playerIndex, response.point);
+                        listServer.set(data.roomId, table);
+                        io.in(data.roomId).emit(socketKeys.PlayerBet, response);
+                    }
+                    break;
+                }
+                case socketKeys.PlayerBet: {
+                    if (table.hasPlayer(data.playerId)) {
+                        if (data.betMoney > 0 && data.betMoney <= table.players[playerIndex].credits) {
+                            io.in(data.roomId).emit(socketKeys.PlayerBet, table.playerBet(data.betMoney, playerIndex));
+                            if (table.isPlayersAllBet()) {
+                                table.startedTable();
+                                table.deck = new decks.StandardDeck({ nbDeck: table.difficulty });
+                                table.deck.shuffleAll();
+                                for (let i = 0; i < 2; i++) {
+                                    setTimeout(() => {
+                                        for (let p = 0; p <= table.players.length; p++) {
+                                            setTimeout(() => {
+                                                if (p !== table.players.length) {
+                                                    const response = table.drawCard(p);
+                                                    table.setScoreToPlayer(p, response.point);
+                                                    io.in(data.roomId).emit(socketKeys.DrawCard, response);
+                                                } else {
+                                                    const response = table.drawCard(table.bank, true);
+                                                    if (table.bank.hand.length > 1) {
+                                                        table.bank.hand[1].visible = false;
+                                                    }
+                                                    io.in(data.roomId).emit(socketKeys.DrawCard, response);
+                                                }
+                                            }, p * 1300);
+                                        }
+                                    }, i * 1300 * (table.players.length + 1));
+                                }
+                                setTimeout(() => {
+                                    table.setCurrentPlayerTurn(table.players[0].id);
+                                    io.in(data.roomId).emit(socketKeys.PlayerTurn, table.createResponse(table.players[0]));
+                                }, (table.players.length + 1) * 2600);
+                            }
+                        } else {
+                            console.log('info-playerNoMoney');
+                        }
+                    }
+                    break;
+                }
+                case socketKeys.PlayerEnd: {
+                    if (table.players.findIndex(p => p.id === data.playerId) === (table.players.length - 1)) {
+                        let response = table.calculateHand(table.bank);
+                        io.in(data.roomId).emit(socketKeys.BankShowCard, table.playerEnds(response));
+                        if (response.point < 17) {
+                            const drawedCards = table.bankEndDraw(response.point);
+                            for (let i = 2; i < drawedCards.length; i++) {
+                                setTimeout(() => {
+                                    if (i === drawedCards.length - 1) {
+                                        response.table = table.manageEndGame();
+                                        io.in(data.roomId).emit(socketKeys.FinishGame, response);
+                                    } else {
+                                        io.in(data.roomId).emit(socketKeys.BankDrawCard, table.bankDrawCard(drawedCards[i]));
+                                    }
+                                }, i * 1000);
+                            }
+                        } else {
+                            response.table = table.manageEndGame();
+                            io.in(data.roomId).emit(socketKeys.FinishGame, response);
+                            console.log("Finish game with no cards draw by the bank");
+                        }
 
-    //                 } else {
-    //                     const { nextPlayer, nextPlayerIndex } = table.getNextPlayer(player.id);
-    //                     const response = table.calculateHand(nextPlayer);
-    //                     response.table = table;
-    //                     if (nextPlayer.hand.length === 0) {
-    //                         response.table = table.manageEndGame();
-    //                         io.in(data.roomId).emit(socketKeys.FinishGame, response);
-    //                     } else {
-    //                         table.currentPlayer = nextPlayer.id;
-    //                         listServer.set(data.roomId, table);
-    //                         response.table = listServer.get(data.roomId);
-    //                         io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
-    //                     }
-    //                 }
-    //                 break;
-    //             }
-    //             default:
-    //                 break;
-    //         }
-    //     }
-    // });
+                    } else {
+                        const { nextPlayer, nextPlayerIndex } = table.getNextPlayer(player.id);
+                        const response = table.calculateHand(nextPlayer);
+                        response.table = table;
+                        if (nextPlayer.hand.length === 0) {
+                            response.table = table.manageEndGame();
+                            io.in(data.roomId).emit(socketKeys.FinishGame, response);
+                        } else {
+                            table.currentPlayer = nextPlayer.id;
+                            listServer.set(data.roomId, table);
+                            response.table = listServer.get(data.roomId);
+                            io.in(data.roomId).emit(socketKeys.PlayerTurn, response);
+                        }
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+    });
 
     // socket.on(socketKeys.Trigger, () => {
     //     io.to(socket.id).emit('trigger');
