@@ -42,7 +42,7 @@ class Table {
         const nextPlayerIndex = this.players.findIndex(p => p.user.id === playerId) + 1;
         // const nextPlayer = this.players[nextPlayerIndex]; // Check if needed later
         return nextPlayerIndex;
-      }
+    }
 
     clean() { }
 

@@ -19,21 +19,21 @@ module.exports = {
     PlayerDouble: 'p-double',
 
     // Status
-    Connected: 'connected',
+    CONNECTED: 'connected',
 
     //Game
-    StartGame: 's-game',
-    DrawCard: 'd-card',
-    BankShowCard: 'b-showCard',
-    BankDrawCard: 'b-drawCard',
-    FinishGame: 'f-game',
+    STARTGAME: 's-game',
+    DRAWCARD: 'd-card',
+    BANKSHOWCARD: 'b-showCard',
+    BANKDRAWCARD: 'b-drawCard',
+    FINICHGAME: 'f-game',
 
     // Simple Action
-    Connection: 'connection',
-    Disconnect: 'disconnect',
+    CONNECTION: 'connection',
+    DISCONNECT: 'disconnect',
     
     // Others
-    Trigger: 'Trigger',
-    Error: 'Error',
-    Action: 'Action'
+    TRIGGER: 'Trigger',
+    ERROR: 'Error',
+    ACTION: 'Action'
 }
