@@ -201,6 +201,7 @@ io.on(socketKeys.Connection, (socket) => {
                             for (let i = 2; i < drawedCards.length; i++) {
                                 setTimeout(() => {
                                     if (i === drawedCards.length - 1) {
+                                        io.in(data.roomId).emit(socketKeys.BankDrawCard, table.bankDrawCard(drawedCards[i]));
                                         response.table = table.manageEndGame();
                                         io.in(data.roomId).emit(socketKeys.FinishGame, response);
                                     } else {
