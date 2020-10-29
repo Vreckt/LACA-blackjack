@@ -68,15 +68,15 @@ class BlackjackTable extends Table {
     bankEndDraw(point) {
         let cardsDraw = this.bank.hand.slice();
         while (point < 17) {
-            cardsDraw.push(this.bankDrawCard());
-            point = this.calculateHand({ hand: cardsDraw });
+            cardsDraw.push(this.getNewCard());
+            point = this.calculateHand({ hand: cardsDraw }).point;
         }
         return cardsDraw;
     }
 
     bankDrawCard(cardToAdd) {
         this.bank.hand.push(cardToAdd);
-        response = this.calculateHand(this.bank);
+        let response = this.calculateHand(this.bank);
         this.bank.point = response.point;
         this.bank.isBlackjack = response.isBlackJack;
         this.bank.isWin = response.isWin;
@@ -89,7 +89,7 @@ class BlackjackTable extends Table {
 
     }
 
-    bankDrawCard() {
+    getNewCard() {
         return this.drawCardFromDeck(1)[0];
     }
 
